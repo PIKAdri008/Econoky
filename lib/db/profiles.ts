@@ -1,23 +1,49 @@
-import { query, queryOne, execute } from '@/lib/mysql'
-import { v4 as uuidv4 } from 'uuid'
+import Profile, { IProfile } from '@/lib/models/Profile'
+import connectDB from '@/lib/mongodb'
 
 export interface Profile {
   id: string
   email: string | null
   full_name: string | null
+  avatar_url?: string | null
+  bio?: string | null
   balance: number
   subscription_status: 'free' | 'pro'
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
+  stats?: {
+    posts_count: number
+    followers_count: number
+    following_count: number
+  }
   created_at: Date
   updated_at: Date
 }
 
 export async function getProfile(userId: string): Promise<Profile | null> {
-  return queryOne<Profile>(
-    'SELECT * FROM profiles WHERE id = ?',
-    [userId]
-  )
+  await connectDB()
+  const profile = await Profile.findOne({ id: userId }).lean()
+  
+  if (!profile) return null
+
+  return {
+    id: profile.id,
+    email: profile.email,
+    full_name: profile.full_name || null,
+    avatar_url: profile.avatar_url || null,
+    bio: profile.bio || null,
+    balance: profile.balance,
+    subscription_status: profile.subscription_status,
+    stripe_customer_id: profile.stripe_customer_id || null,
+    stripe_subscription_id: profile.stripe_subscription_id || null,
+    stats: profile.stats || {
+      posts_count: 0,
+      followers_count: 0,
+      following_count: 0,
+    },
+    created_at: profile.created_at,
+    updated_at: profile.updated_at,
+  }
 }
 
 export async function createProfile(data: {
@@ -25,53 +51,38 @@ export async function createProfile(data: {
   email: string
   full_name?: string
 }): Promise<void> {
-  await execute(
-    `INSERT INTO profiles (id, email, full_name, balance, subscription_status)
-     VALUES (?, ?, ?, 0.00, 'free')`,
-    [data.id, data.email, data.full_name || null]
-  )
+  await connectDB()
+  await Profile.create({
+    id: data.id,
+    email: data.email,
+    full_name: data.full_name,
+    balance: 0.0,
+    subscription_status: 'free',
+    stats: {
+      posts_count: 0,
+      followers_count: 0,
+      following_count: 0,
+    },
+  })
 }
 
 export async function updateProfile(
   userId: string,
   data: Partial<{
     full_name: string
+    avatar_url: string
+    bio: string
     balance: number
     subscription_status: 'free' | 'pro'
     stripe_customer_id: string
     stripe_subscription_id: string
+    stats: {
+      posts_count: number
+      followers_count: number
+      following_count: number
+    }
   }>
 ): Promise<void> {
-  const fields: string[] = []
-  const values: any[] = []
-
-  if (data.full_name !== undefined) {
-    fields.push('full_name = ?')
-    values.push(data.full_name)
-  }
-  if (data.balance !== undefined) {
-    fields.push('balance = ?')
-    values.push(data.balance)
-  }
-  if (data.subscription_status !== undefined) {
-    fields.push('subscription_status = ?')
-    values.push(data.subscription_status)
-  }
-  if (data.stripe_customer_id !== undefined) {
-    fields.push('stripe_customer_id = ?')
-    values.push(data.stripe_customer_id)
-  }
-  if (data.stripe_subscription_id !== undefined) {
-    fields.push('stripe_subscription_id = ?')
-    values.push(data.stripe_subscription_id)
-  }
-
-  if (fields.length === 0) return
-
-  values.push(userId)
-  await execute(
-    `UPDATE profiles SET ${fields.join(', ')} WHERE id = ?`,
-    values
-  )
+  await connectDB()
+  await Profile.updateOne({ id: userId }, { $set: data })
 }
-

@@ -31,12 +31,10 @@ Crea un archivo `.env.local` en la raíz del proyecto con las siguientes variabl
 NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_clave_anonima_de_supabase
 
-# MySQL
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_USER=root
-MYSQL_PASSWORD=tu_contraseña_mysql
-MYSQL_DATABASE=econoky
+# MongoDB (NoSQL)
+# Local: mongodb://localhost:27017/econoky
+# Atlas: mongodb+srv://usuario:contraseña@cluster.mongodb.net/econoky
+MONGODB_URI=mongodb://localhost:27017/econoky
 
 # Stripe
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=tu_clave_publica_de_stripe
@@ -48,10 +46,10 @@ STRIPE_WEBHOOK_SECRET=tu_webhook_secret_de_stripe
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-3. **Configurar MySQL**:
-   - Instala MySQL en tu sistema
-   - Ejecuta el script `mysql/schema.sql` para crear las tablas
-   - Ver `SETUP_MYSQL.md` para instrucciones detalladas
+3. **Configurar MongoDB**:
+   - Instala MongoDB localmente o usa MongoDB Atlas (recomendado)
+   - MongoDB crea las colecciones automáticamente, no necesitas scripts
+   - Ver `SETUP.md` para instrucciones detalladas
 
 4. **Configurar Supabase (Solo Autenticación)**:
    - Crea un nuevo proyecto en Supabase
@@ -92,15 +90,22 @@ Econoky/
 
 ## 🗄️ Base de Datos
 
-El proyecto usa una arquitectura híbrida:
+El proyecto usa una arquitectura híbrida con MongoDB NoSQL:
 
 - **Supabase**: Solo para autenticación (login, registro)
-- **MySQL**: Para todos los datos de la aplicación:
-  - **profiles**: Información de los usuarios
-  - **posts**: Publicaciones de la red social
+- **MongoDB**: Base de datos NoSQL para todos los datos de la aplicación:
+  - **profiles**: Información de los usuarios (con estadísticas embebidas)
+  - **posts**: Publicaciones de la red social (con contador de likes embebido)
   - **transactions**: Transacciones y movimientos de saldo
 
-Ver `SETUP_MYSQL.md` para instrucciones detalladas de configuración con MySQL.
+**Características del diseño NoSQL:**
+- No relacional: Sin foreign keys ni relaciones estrictas
+- Referencias por ID: Se usan IDs de Supabase como referencias simples
+- Agregaciones: Se usan agregaciones de MongoDB para unir datos
+- Embedding: Datos relacionados embebidos cuando tiene sentido
+- Escalabilidad: Diseñado para escalar horizontalmente
+
+Ver `SETUP.md` para instrucciones detalladas de configuración.
 
 ## 💳 Stripe
 
@@ -119,9 +124,11 @@ El proyecto está configurado para usar Stripe en modo test. Asegúrate de:
 ## 📝 Notas
 
 - Este es un proyecto de aprendizaje, adapta la seguridad según tus necesidades
-- Supabase solo se usa para autenticación, todos los datos están en MySQL
+- Supabase solo se usa para autenticación, todos los datos están en MongoDB (NoSQL)
+- MongoDB es NoSQL y no relacional, perfecto para redes sociales
 - Recuerda configurar correctamente los webhooks de Stripe
-- Asegúrate de tener MySQL corriendo antes de iniciar la aplicación
+- Asegúrate de tener MongoDB corriendo antes de iniciar la aplicación
+- Para producción, usa MongoDB Atlas (gratis hasta cierto límite)
 
 ## 📄 Licencia
 

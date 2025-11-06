@@ -30,8 +30,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { queryOne } = await import('@/lib/mysql')
+    const Profile = (await import('@/lib/models/Profile')).default
     const { updateProfile } = await import('@/lib/db/profiles')
+    const connectDB = (await import('@/lib/mongodb')).default
+
+    await connectDB()
 
     // Manejar diferentes tipos de eventos
     switch (event.type) {
@@ -40,11 +43,8 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
-        // Buscar usuario por customer_id en MySQL
-        const profile = await queryOne<{ id: string }>(
-          'SELECT id FROM profiles WHERE stripe_customer_id = ?',
-          [customerId]
-        )
+        // Buscar usuario por customer_id en MongoDB
+        const profile = await Profile.findOne({ stripe_customer_id: customerId }).lean()
 
         if (profile) {
           const subscriptionStatus = subscription.status === 'active' ? 'pro' : 'free'

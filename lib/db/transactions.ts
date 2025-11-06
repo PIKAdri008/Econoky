@@ -1,5 +1,5 @@
-import { query, execute } from '@/lib/mysql'
-import { v4 as uuidv4 } from 'uuid'
+import Transaction, { ITransaction } from '@/lib/models/Transaction'
+import connectDB from '@/lib/mongodb'
 
 export interface Transaction {
   id: string
@@ -14,13 +14,20 @@ export async function getTransactionsByUserId(
   userId: string,
   limit: number = 50
 ): Promise<Transaction[]> {
-  return query<Transaction>(
-    `SELECT * FROM transactions 
-     WHERE user_id = ? 
-     ORDER BY created_at DESC 
-     LIMIT ?`,
-    [userId, limit]
-  )
+  await connectDB()
+  const transactions = await Transaction.find({ user_id: userId })
+    .sort({ created_at: -1 })
+    .limit(limit)
+    .lean()
+
+  return transactions.map((transaction: any) => ({
+    id: transaction._id.toString(),
+    user_id: transaction.user_id,
+    amount: transaction.amount,
+    type: transaction.type,
+    description: transaction.description || null,
+    created_at: transaction.created_at,
+  }))
 }
 
 export async function createTransaction(data: {
@@ -29,12 +36,13 @@ export async function createTransaction(data: {
   type: 'income' | 'expense' | 'subscription' | 'refund'
   description?: string
 }): Promise<string> {
-  const id = uuidv4()
-  await execute(
-    `INSERT INTO transactions (id, user_id, amount, type, description)
-     VALUES (?, ?, ?, ?, ?)`,
-    [id, data.user_id, data.amount, data.type, data.description || null]
-  )
-  return id
+  await connectDB()
+  const transaction = await Transaction.create({
+    user_id: data.user_id,
+    amount: data.amount,
+    type: data.type,
+    description: data.description,
+  })
+  
+  return transaction._id.toString()
 }
-

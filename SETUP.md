@@ -1,12 +1,14 @@
 # Guía de Configuración Paso a Paso
 
-Esta guía te ayudará a configurar Econoky desde cero usando MySQL para la base de datos.
+Esta guía te ayudará a configurar Econoky desde cero usando MongoDB como base de datos NoSQL.
 
 ## Arquitectura del Proyecto
 
 - **Supabase**: Solo para autenticación (login, registro)
-- **MySQL**: Para todos los datos de la aplicación (perfiles, publicaciones, transacciones)
+- **MongoDB**: Base de datos NoSQL para todos los datos (perfiles, publicaciones, transacciones)
 - **Stripe**: Para pagos y suscripciones
+
+**Nota**: MongoDB es NoSQL y no relacional, perfecto para redes sociales donde los datos pueden ser más flexibles y escalables.
 
 ## Paso 1: Instalar Dependencias
 
@@ -14,56 +16,54 @@ Esta guía te ayudará a configurar Econoky desde cero usando MySQL para la base
 npm install
 ```
 
-## Paso 2: Configurar MySQL
+## Paso 2: Configurar MongoDB
 
-### 2.1 Instalar MySQL
-
-Si no tienes MySQL instalado:
+### 2.1 Instalar MongoDB
 
 **Ubuntu/Debian:**
 ```bash
 sudo apt update
-sudo apt install mysql-server
-sudo mysql_secure_installation
+sudo apt install -y mongodb
+sudo systemctl start mongodb
+sudo systemctl enable mongodb
 ```
 
 **macOS:**
 ```bash
-brew install mysql
-brew services start mysql
+brew tap mongodb/brew
+brew install mongodb-community
+brew services start mongodb-community
 ```
 
 **Windows:**
-Descarga MySQL desde [mysql.com](https://dev.mysql.com/downloads/mysql/)
+Descarga MongoDB desde [mongodb.com](https://www.mongodb.com/try/download/community)
 
-### 2.2 Crear Base de Datos
+**Alternativa - MongoDB Atlas (Recomendado para producción):**
+1. Ve a [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
+2. Crea una cuenta gratuita
+3. Crea un cluster gratuito
+4. Obtén la cadena de conexión (connection string)
 
-1. Accede a MySQL:
+### 2.2 Verificar que MongoDB está corriendo
+
+**Linux:**
 ```bash
-mysql -u root -p
+sudo systemctl status mongodb
 ```
 
-2. Ejecuta el script SQL:
+**macOS:**
 ```bash
-mysql -u root -p < mysql/schema.sql
+brew services list
 ```
 
-O copia y pega el contenido de `mysql/schema.sql` en tu cliente MySQL (phpMyAdmin, MySQL Workbench, etc.)
+**Windows:**
+Verifica en el Administrador de servicios
 
-Esto creará:
-- La base de datos `econoky`
-- Las tablas: `profiles`, `posts`, `transactions`
-- Los índices necesarios para mejorar el rendimiento
+### 2.3 Crear Base de Datos
 
-### 2.3 Crear Usuario (Opcional pero Recomendado)
+MongoDB crea la base de datos automáticamente cuando insertas el primer documento. No necesitas crear nada manualmente.
 
-Para mayor seguridad, crea un usuario específico para la aplicación:
-
-```sql
-CREATE USER 'econoky_user'@'localhost' IDENTIFIED BY 'tu_contraseña_segura';
-GRANT ALL PRIVILEGES ON econoky.* TO 'econoky_user'@'localhost';
-FLUSH PRIVILEGES;
-```
+La base de datos se llamará `econoky` (o el nombre que especifiques en la URI de conexión).
 
 ## Paso 3: Configurar Supabase (Solo Autenticación)
 
@@ -131,12 +131,12 @@ Crea un archivo `.env.local` en la raíz del proyecto con este contenido:
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_aqui
 
-# MySQL
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_USER=root
-MYSQL_PASSWORD=tu_contraseña_mysql
-MYSQL_DATABASE=econoky
+# MongoDB
+# Para MongoDB local:
+MONGODB_URI=mongodb://localhost:27017/econoky
+
+# Para MongoDB Atlas (recomendado para producción):
+# MONGODB_URI=mongodb+srv://usuario:contraseña@cluster.mongodb.net/econoky?retryWrites=true&w=majority
 
 # Stripe
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_tu_clave_aqui
@@ -149,30 +149,30 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 **Importante**: 
-- Si creaste un usuario específico para MySQL, usa ese usuario y contraseña en lugar de `root`
+- Si usas MongoDB Atlas, reemplaza la URI con tu connection string
 - Reemplaza todos los valores con tus claves reales
 - Nunca subas este archivo a Git (ya está en `.gitignore`)
 
 ## Paso 6: Ejecutar el Proyecto
 
-**Antes de ejecutar**, asegúrate de que MySQL está corriendo:
+**Antes de ejecutar**, asegúrate de que MongoDB está corriendo:
 
 **Linux:**
 ```bash
-sudo systemctl status mysql
+sudo systemctl status mongodb
 # Si no está corriendo:
-sudo systemctl start mysql
+sudo systemctl start mongodb
 ```
 
 **macOS:**
 ```bash
 brew services list
 # Si no está corriendo:
-brew services start mysql
+brew services start mongodb-community
 ```
 
 **Windows:**
-Verifica que el servicio MySQL está corriendo en el Administrador de tareas o servicios.
+Verifica que el servicio MongoDB está corriendo en el Administrador de servicios.
 
 ```bash
 npm run dev
@@ -184,10 +184,10 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
 1. **Registro**: Ve a `/auth/register` y crea una cuenta
    - Esto creará el usuario en Supabase (autenticación)
-   - Y automáticamente creará el perfil en MySQL
+   - Y automáticamente creará el perfil en MongoDB
 2. **Login**: Inicia sesión en `/auth/login`
-3. **Dashboard**: Verás tu dashboard en `/dashboard` con datos desde MySQL
-4. **Comunidad**: Crea publicaciones en `/community` (se guardan en MySQL)
+3. **Dashboard**: Verás tu dashboard en `/dashboard` con datos desde MongoDB
+4. **Comunidad**: Crea publicaciones en `/community` (se guardan en MongoDB)
 5. **Planes**: Prueba el checkout en `/plans` (usa tarjetas de prueba de Stripe)
 
 ### Tarjetas de Prueba de Stripe
@@ -200,16 +200,15 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
 ### 8.1 Preparar Base de Datos en Producción
 
-Para producción, necesitas una base de datos MySQL remota. Opciones recomendadas:
+Para producción, usa **MongoDB Atlas** (recomendado):
 
-- [PlanetScale](https://planetscale.com) - MySQL serverless
-- [AWS RDS](https://aws.amazon.com/rds/) - MySQL gestionado
-- [Google Cloud SQL](https://cloud.google.com/sql) - MySQL gestionado
-- [DigitalOcean Managed Databases](https://www.digitalocean.com/products/managed-databases) - MySQL gestionado
-
-1. Crea una base de datos MySQL en el servicio elegido
-2. Ejecuta el script `mysql/schema.sql` en tu base de datos remota
-3. Anota las credenciales de conexión
+1. Ve a [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
+2. Crea un cluster (el plan gratuito es suficiente para empezar)
+3. Configura el acceso:
+   - Añade tu IP a la whitelist (o usa 0.0.0.0/0 para permitir todas)
+   - Crea un usuario de base de datos
+4. Obtén la connection string
+5. Reemplaza `<password>` y `<dbname>` en la URI
 
 ### 8.2 Desplegar en Vercel
 
@@ -217,7 +216,7 @@ Para producción, necesitas una base de datos MySQL remota. Opciones recomendada
 2. Ve a [https://vercel.com](https://vercel.com) y conecta tu repositorio
 3. En la configuración, añade todas las variables de entorno:
    - Variables de Supabase (autenticación)
-   - Variables de MySQL (con las credenciales de tu base de datos remota)
+   - `MONGODB_URI` con tu connection string de MongoDB Atlas
    - Variables de Stripe
    - `NEXT_PUBLIC_APP_URL` con tu dominio de Vercel
 4. Configura el webhook de Stripe con la URL de producción: `https://tu-dominio.vercel.app/api/stripe/webhook`
@@ -229,29 +228,22 @@ Para producción, necesitas una base de datos MySQL remota. Opciones recomendada
 - Verifica que `.env.local` existe y tiene todas las variables
 - Reinicia el servidor de desarrollo
 
-### Error: "Access denied for user" (MySQL)
-- Verifica las credenciales de MySQL en `.env.local`
-- Asegúrate de que el usuario tiene permisos en la base de datos `econoky`
-- Si usas un usuario específico, verifica que tiene los privilegios necesarios
-
-### Error: "Table doesn't exist"
-- Asegúrate de haber ejecutado el script `mysql/schema.sql`
-- Verifica que estás conectado a la base de datos correcta:
-  ```sql
-  USE econoky;
-  SHOW TABLES;
-  ```
-- Deberías ver: `profiles`, `posts`, `transactions`
-
-### Error: "Connection refused" o "Can't connect to MySQL server"
-- Verifica que MySQL está corriendo:
+### Error: "MongoNetworkError" o "Connection refused"
+- Verifica que MongoDB está corriendo:
   ```bash
-  sudo systemctl status mysql  # Linux
-  brew services list           # macOS
+  sudo systemctl status mongodb  # Linux
+  brew services list             # macOS
   ```
-- Verifica el puerto (por defecto 3306)
-- Si MySQL está en otro servidor, verifica la conectividad de red
-- Verifica `MYSQL_HOST` en `.env.local`
+- Verifica la URI de conexión en `.env.local`
+- Si usas MongoDB Atlas, verifica que tu IP está en la whitelist
+
+### Error: "MongoServerError: Authentication failed"
+- Verifica las credenciales en la URI de MongoDB
+- Si usas MongoDB Atlas, asegúrate de que el usuario y contraseña son correctos
+
+### Error: "Collection doesn't exist"
+- MongoDB crea las colecciones automáticamente cuando insertas el primer documento
+- Esto es normal, no necesitas crear nada manualmente
 
 ### Error: "Stripe checkout failed"
 - Verifica que el Price ID es correcto
@@ -263,51 +255,90 @@ Para producción, necesitas una base de datos MySQL remota. Opciones recomendada
 - Asegúrate de haber iniciado sesión correctamente
 
 ### Error al crear perfil después del registro
-- Verifica que MySQL está accesible
+- Verifica que MongoDB está accesible
 - Revisa los logs del servidor para ver el error específico
-- Asegúrate de que la tabla `profiles` existe en MySQL
+- Verifica la URI de conexión
 
-## Estructura de la Base de Datos MySQL
+## Estructura de la Base de Datos MongoDB (NoSQL)
 
-### Tabla: profiles
-- `id` (VARCHAR(36)): UUID del usuario de Supabase (clave primaria)
-- `email`: Email del usuario
-- `full_name`: Nombre completo
-- `balance` (DECIMAL): Saldo actual del usuario
-- `subscription_status` (ENUM): Estado de suscripción ('free' o 'pro')
-- `stripe_customer_id`: ID de cliente en Stripe
-- `stripe_subscription_id`: ID de suscripción en Stripe
-- `created_at`, `updated_at`: Timestamps automáticos
+### Colección: profiles
+Documentos que almacenan información de usuarios. No hay relaciones, solo referencias por ID.
 
-### Tabla: posts
-- `id` (VARCHAR(36)): UUID de la publicación (clave primaria)
-- `user_id` (VARCHAR(36)): ID del usuario (clave foránea a profiles)
-- `title`: Título de la publicación
-- `content` (TEXT): Contenido de la publicación
-- `created_at`, `updated_at`: Timestamps automáticos
+```javascript
+{
+  _id: ObjectId,
+  id: "uuid-de-supabase", // Clave única
+  email: "usuario@example.com",
+  full_name: "Nombre Usuario",
+  avatar_url: "https://...",
+  bio: "Biografía del usuario",
+  balance: 0.00,
+  subscription_status: "free" | "pro",
+  stripe_customer_id: "...",
+  stripe_subscription_id: "...",
+  stats: {
+    posts_count: 0,
+    followers_count: 0,
+    following_count: 0
+  },
+  created_at: ISODate,
+  updated_at: ISODate
+}
+```
 
-### Tabla: transactions
-- `id` (VARCHAR(36)): UUID de la transacción (clave primaria)
-- `user_id` (VARCHAR(36)): ID del usuario (clave foránea a profiles)
-- `amount` (DECIMAL): Monto de la transacción
-- `type` (ENUM): Tipo ('income', 'expense', 'subscription', 'refund')
-- `description` (TEXT): Descripción opcional
-- `created_at`: Timestamp automático
+### Colección: posts
+Documentos que almacenan publicaciones. Usa `user_id` como referencia (no foreign key).
+
+```javascript
+{
+  _id: ObjectId,
+  user_id: "uuid-de-supabase", // Referencia (no relacional)
+  title: "Título del post",
+  content: "Contenido del post",
+  likes: 0, // Contador embebido (no relacional)
+  created_at: ISODate,
+  updated_at: ISODate
+}
+```
+
+### Colección: transactions
+Documentos que almacenan transacciones financieras.
+
+```javascript
+{
+  _id: ObjectId,
+  user_id: "uuid-de-supabase", // Referencia (no relacional)
+  amount: 10.50,
+  type: "income" | "expense" | "subscription" | "refund",
+  description: "Descripción opcional",
+  created_at: ISODate
+}
+```
+
+## Características del Diseño NoSQL
+
+- **No Relacional**: No hay foreign keys ni relaciones estrictas
+- **Referencias por ID**: Se usan IDs de Supabase como referencias simples
+- **Agregaciones**: Se usan agregaciones de MongoDB para unir datos cuando es necesario
+- **Embedding**: Los datos relacionados se pueden embebir (como `stats` en `profiles`)
+- **Escalabilidad**: Diseñado para escalar horizontalmente
+- **Flexibilidad**: Esquema flexible que se adapta a las necesidades de una red social
 
 ## Recursos Adicionales
 
 - [Documentación de Next.js](https://nextjs.org/docs)
-- [Documentación de MySQL](https://dev.mysql.com/doc/)
-- [Documentación de mysql2](https://github.com/sidorares/node-mysql2)
+- [Documentación de MongoDB](https://docs.mongodb.com/)
+- [Documentación de Mongoose](https://mongoosejs.com/docs/)
+- [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 - [Documentación de Supabase Auth](https://supabase.com/docs/guides/auth)
 - [Documentación de Stripe](https://stripe.com/docs)
 - [Documentación de Tailwind CSS](https://tailwindcss.com/docs)
 
 ## Notas Importantes
 
-- **Seguridad**: Nunca expongas tus credenciales de MySQL en el código o en repositorios públicos
-- **Backups**: Configura backups regulares de tu base de datos MySQL
-- **Conexiones**: El pool de conexiones está configurado para 10 conexiones simultáneas
-- **UUIDs**: Los IDs se generan usando UUID v4 (paquete `uuid`)
-- **Autenticación vs Datos**: Recuerda que Supabase solo maneja la autenticación, todos los datos están en MySQL
-
+- **Seguridad**: Nunca expongas tus credenciales de MongoDB en el código o en repositorios públicos
+- **Backups**: Configura backups regulares de tu base de datos MongoDB (MongoDB Atlas lo hace automáticamente)
+- **Conexiones**: La conexión se cachea para evitar múltiples conexiones en desarrollo
+- **NoSQL**: Recuerda que MongoDB es NoSQL - no hay relaciones estrictas, solo referencias
+- **Autenticación vs Datos**: Supabase solo maneja la autenticación, todos los datos están en MongoDB
+- **Escalabilidad**: MongoDB es ideal para redes sociales porque escala horizontalmente fácilmente

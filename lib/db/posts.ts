@@ -1,5 +1,6 @@
-import { query, queryOne, execute } from '@/lib/mysql'
-import { v4 as uuidv4 } from 'uuid'
+import Post, { IPost } from '@/lib/models/Post'
+import Profile from '@/lib/models/Profile'
+import connectDB from '@/lib/mongodb'
 
 export interface Post {
   id: string
@@ -25,44 +26,97 @@ export interface PostWithProfile {
 }
 
 export async function getPosts(limit: number = 50): Promise<PostWithProfile[]> {
-  const posts = await query<Post & { full_name: string | null; email: string | null }>(
-    `SELECT p.*, pr.full_name, pr.email
-     FROM posts p
-     LEFT JOIN profiles pr ON p.user_id = pr.id
-     ORDER BY p.created_at DESC
-     LIMIT ?`,
-    [limit]
-  )
+  await connectDB()
+  
+  // Usar agregación para obtener posts con información del perfil
+  const posts = await Post.aggregate([
+    {
+      $sort: { created_at: -1 }
+    },
+    {
+      $limit: limit
+    },
+    {
+      $lookup: {
+        from: 'profiles',
+        localField: 'user_id',
+        foreignField: 'id',
+        as: 'profile'
+      }
+    },
+    {
+      $unwind: {
+        path: '$profile',
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        id: { $toString: '$_id' },
+        user_id: 1,
+        title: 1,
+        content: 1,
+        created_at: 1,
+        updated_at: 1,
+        profile: {
+          id: '$profile.id',
+          full_name: '$profile.full_name',
+          email: '$profile.email'
+        }
+      }
+    }
+  ])
 
-  return posts.map(post => ({
+  return posts.map((post: any) => ({
     id: post.id,
     user_id: post.user_id,
     title: post.title,
     content: post.content,
     created_at: post.created_at,
     updated_at: post.updated_at,
-    profile: {
-      id: post.user_id,
-      full_name: post.full_name,
-      email: post.email,
-    },
+    profile: post.profile || undefined,
   }))
 }
 
 export async function getPostById(postId: string): Promise<Post | null> {
-  return queryOne<Post>(
-    'SELECT * FROM posts WHERE id = ?',
-    [postId]
-  )
+  await connectDB()
+  const post = await Post.findById(postId).lean()
+  
+  if (!post) return null
+
+  return {
+    id: post._id.toString(),
+    user_id: post.user_id,
+    title: post.title,
+    content: post.content,
+    created_at: post.created_at,
+    updated_at: post.updated_at,
+  }
 }
 
 export async function getPostsByUserId(userId: string, limit: number = 10): Promise<Post[]> {
-  return query<Post>(
-    `SELECT * FROM posts 
-     WHERE user_id = ? 
-     ORDER BY created_at DESC 
-     LIMIT ?`,
-    [userId, limit]
+  await connectDB()
+  const posts = await Post.find({ user_id: userId })
+    .sort({ created_at: -1 })
+    .limit(limit)
+    .lean()
+
+  return posts.map((post: any) => ({
+    id: post._id.toString(),
+    user_id: post.user_id,
+    title: post.title,
+    content: post.content,
+    created_at: post.created_at,
+    updated_at: post.updated_at,
+  }))
+}
+
+export async function likePost(postId: string): Promise<void> {
+  await connectDB()
+  await Post.updateOne(
+    { _id: postId },
+    { $inc: { likes: 1 } }
   )
 }
 
@@ -71,13 +125,14 @@ export async function createPost(data: {
   title: string
   content: string
 }): Promise<string> {
-  const id = uuidv4()
-  await execute(
-    `INSERT INTO posts (id, user_id, title, content)
-     VALUES (?, ?, ?, ?)`,
-    [id, data.user_id, data.title, data.content]
-  )
-  return id
+  await connectDB()
+  const post = await Post.create({
+    user_id: data.user_id,
+    title: data.title,
+    content: data.content,
+  })
+  
+  return post._id.toString()
 }
 
 export async function updatePost(
@@ -85,31 +140,14 @@ export async function updatePost(
   userId: string,
   data: { title?: string; content?: string }
 ): Promise<void> {
-  const fields: string[] = []
-  const values: any[] = []
-
-  if (data.title !== undefined) {
-    fields.push('title = ?')
-    values.push(data.title)
-  }
-  if (data.content !== undefined) {
-    fields.push('content = ?')
-    values.push(data.content)
-  }
-
-  if (fields.length === 0) return
-
-  values.push(postId, userId)
-  await execute(
-    `UPDATE posts SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`,
-    values
+  await connectDB()
+  await Post.updateOne(
+    { _id: postId, user_id: userId },
+    { $set: data }
   )
 }
 
 export async function deletePost(postId: string, userId: string): Promise<void> {
-  await execute(
-    'DELETE FROM posts WHERE id = ? AND user_id = ?',
-    [postId, userId]
-  )
+  await connectDB()
+  await Post.deleteOne({ _id: postId, user_id: userId })
 }
-
