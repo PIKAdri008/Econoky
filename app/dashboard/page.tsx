@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Wallet, TrendingUp, Users, FileText } from 'lucide-react'
+import { getProfile } from '@/lib/db/profiles'
+import { getPostsByUserId } from '@/lib/db/posts'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -12,20 +14,11 @@ export default async function DashboardPage() {
     redirect('/auth/login')
   }
 
-  // Obtener perfil del usuario
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  // Obtener perfil del usuario desde MySQL
+  const profile = await getProfile(user.id)
 
-  // Obtener publicaciones del usuario
-  const { data: posts } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(5)
+  // Obtener publicaciones del usuario desde MySQL
+  const posts = await getPostsByUserId(user.id, 5)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

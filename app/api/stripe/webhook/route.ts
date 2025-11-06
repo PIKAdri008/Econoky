@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -31,7 +30,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const supabase = await createClient()
+    const { queryOne } = await import('@/lib/mysql')
+    const { updateProfile } = await import('@/lib/db/profiles')
 
     // Manejar diferentes tipos de eventos
     switch (event.type) {
@@ -40,23 +40,19 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
-        // Buscar usuario por customer_id
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('stripe_customer_id', customerId)
-          .single()
+        // Buscar usuario por customer_id en MySQL
+        const profile = await queryOne<{ id: string }>(
+          'SELECT id FROM profiles WHERE stripe_customer_id = ?',
+          [customerId]
+        )
 
-        if (profiles) {
+        if (profile) {
           const subscriptionStatus = subscription.status === 'active' ? 'pro' : 'free'
 
-          await supabase
-            .from('profiles')
-            .update({
-              subscription_status: subscriptionStatus,
-              stripe_subscription_id: subscription.id,
-            })
-            .eq('id', profiles.id)
+          await updateProfile(profile.id, {
+            subscription_status: subscriptionStatus,
+            stripe_subscription_id: subscription.id,
+          })
         }
         break
       }

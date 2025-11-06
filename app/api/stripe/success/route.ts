@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { updateProfile } from '@/lib/db/profiles'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -20,22 +20,13 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.client_reference_id
-    const supabase = await createClient()
 
-    // Actualizar el perfil del usuario a suscripción Pro
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        subscription_status: 'pro',
-        stripe_customer_id: session.customer as string,
-        stripe_subscription_id: session.subscription as string,
-      })
-      .eq('id', userId)
-
-    if (error) {
-      console.error('Error actualizando perfil:', error)
-      redirect('/plans?error=update_failed')
-    }
+    // Actualizar el perfil del usuario a suscripción Pro en MySQL
+    await updateProfile(userId, {
+      subscription_status: 'pro',
+      stripe_customer_id: session.customer as string,
+      stripe_subscription_id: session.subscription as string,
+    })
 
     redirect('/dashboard?success=subscription_active')
   } catch (error: any) {

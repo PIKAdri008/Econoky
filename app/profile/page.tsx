@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from '@/components/ProfileForm'
+import { getProfile } from '@/lib/db/profiles'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -11,12 +12,8 @@ export default async function ProfilePage() {
     redirect('/auth/login')
   }
 
-  // Obtener perfil del usuario
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  // Obtener perfil del usuario desde MySQL
+  const profile = await getProfile(user.id)
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

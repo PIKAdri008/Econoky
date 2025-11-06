@@ -24,15 +24,23 @@ export function CreatePost() {
         throw new Error('Debes estar autenticado para publicar')
       }
 
-      const { error } = await supabase
-        .from('posts')
-        .insert({
-          user_id: user.id,
+      // Crear publicación usando la API
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           title,
           content,
-        })
+        }),
+      })
 
-      if (error) throw error
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear la publicación')
+      }
 
       // Limpiar formulario y refrescar
       setTitle('')

@@ -33,20 +33,27 @@ export default function RegisterPage() {
 
       if (authError) throw authError
 
-      // Crear perfil en la base de datos
+      // Crear perfil en MySQL
       if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email: authData.user.email,
-            full_name: fullName,
-            balance: 0,
-            subscription_status: 'free',
+        try {
+          const response = await fetch('/api/profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: authData.user.id,
+              email: authData.user.email || email,
+              full_name: fullName,
+            }),
           })
 
-        if (profileError) {
-          console.error('Error creando perfil:', profileError)
+          if (!response.ok) {
+            console.error('Error creando perfil en MySQL')
+            // No lanzamos error aquí porque el usuario ya está creado
+          }
+        } catch (error) {
+          console.error('Error creando perfil:', error)
           // No lanzamos error aquí porque el usuario ya está creado
         }
       }

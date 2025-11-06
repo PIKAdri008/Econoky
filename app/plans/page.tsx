@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { CheckoutButton } from '@/components/CheckoutButton'
+import { getProfile } from '@/lib/db/profiles'
 
 export default async function PlansPage() {
   const supabase = await createClient()
@@ -13,12 +14,8 @@ export default async function PlansPage() {
     redirect('/auth/login')
   }
 
-  // Obtener perfil del usuario
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  // Obtener perfil del usuario desde MySQL
+  const profile = await getProfile(user.id)
 
   const plans = [
     {

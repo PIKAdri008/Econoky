@@ -29,12 +29,22 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         throw new Error('Debes estar autenticado')
       }
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: fullName })
-        .eq('id', user.id)
+      // Actualizar perfil usando la API
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          full_name: fullName,
+        }),
+      })
 
-      if (error) throw error
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al actualizar el perfil')
+      }
 
       setSuccess('Perfil actualizado correctamente')
       router.refresh()
