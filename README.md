@@ -27,10 +27,16 @@ npm install
 Crea un archivo `.env.local` en la raíz del proyecto con las siguientes variables:
 
 ```env
-# Supabase
+# Supabase (solo para autenticación)
 NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_clave_anonima_de_supabase
-SUPABASE_SERVICE_ROLE_KEY=tu_clave_de_servicio_de_supabase
+
+# MySQL
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=tu_contraseña_mysql
+MYSQL_DATABASE=econoky
 
 # Stripe
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=tu_clave_publica_de_stripe
@@ -42,18 +48,23 @@ STRIPE_WEBHOOK_SECRET=tu_webhook_secret_de_stripe
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-3. **Configurar Supabase**:
-   - Crea un nuevo proyecto en Supabase
-   - Ve a SQL Editor y ejecuta el contenido del archivo `supabase/schema.sql`
-   - Esto creará todas las tablas y políticas necesarias
+3. **Configurar MySQL**:
+   - Instala MySQL en tu sistema
+   - Ejecuta el script `mysql/schema.sql` para crear las tablas
+   - Ver `SETUP_MYSQL.md` para instrucciones detalladas
 
-4. **Configurar Stripe**:
+4. **Configurar Supabase (Solo Autenticación)**:
+   - Crea un nuevo proyecto en Supabase
+   - Solo necesitas las claves de API para autenticación
+   - No necesitas crear tablas en Supabase
+
+5. **Configurar Stripe**:
    - Crea un producto y precio en Stripe (modo test)
    - Copia el Price ID y añádelo a `NEXT_PUBLIC_STRIPE_PRICE_ID`
    - Configura un webhook en Stripe apuntando a: `https://tu-dominio.com/api/stripe/webhook`
    - Añade los eventos: `customer.subscription.deleted`, `customer.subscription.updated`, `invoice.payment_succeeded`
 
-5. **Ejecutar el proyecto**:
+6. **Ejecutar el proyecto**:
 ```bash
 npm run dev
 ```
@@ -81,11 +92,15 @@ Econoky/
 
 ## 🗄️ Base de Datos
 
-El proyecto usa Supabase (PostgreSQL) con las siguientes tablas principales:
+El proyecto usa una arquitectura híbrida:
 
-- **profiles**: Información de los usuarios
-- **posts**: Publicaciones de la red social
-- **transactions**: Transacciones y movimientos de saldo
+- **Supabase**: Solo para autenticación (login, registro)
+- **MySQL**: Para todos los datos de la aplicación:
+  - **profiles**: Información de los usuarios
+  - **posts**: Publicaciones de la red social
+  - **transactions**: Transacciones y movimientos de saldo
+
+Ver `SETUP_MYSQL.md` para instrucciones detalladas de configuración con MySQL.
 
 ## 💳 Stripe
 
@@ -104,8 +119,9 @@ El proyecto está configurado para usar Stripe en modo test. Asegúrate de:
 ## 📝 Notas
 
 - Este es un proyecto de aprendizaje, adapta la seguridad según tus necesidades
-- Las políticas RLS en Supabase protegen los datos
+- Supabase solo se usa para autenticación, todos los datos están en MySQL
 - Recuerda configurar correctamente los webhooks de Stripe
+- Asegúrate de tener MySQL corriendo antes de iniciar la aplicación
 
 ## 📄 Licencia
 
