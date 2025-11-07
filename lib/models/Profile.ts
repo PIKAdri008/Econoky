@@ -6,8 +6,8 @@ connectDB()
 
 export interface IProfile {
   _id?: mongoose.Types.ObjectId
-  id: string // UUID de Supabase (clave única, no relacional)
-  email: string
+  email: string // Email único para autenticación
+  password: string // Hash de la contraseña
   full_name?: string
   avatar_url?: string // URL del avatar (no relacional)
   bio?: string // Biografía del usuario
@@ -27,16 +27,18 @@ export interface IProfile {
 
 const ProfileSchema = new Schema<IProfile>(
   {
-    id: {
+    email: {
       type: String,
       required: true,
       unique: true,
       index: true,
+      lowercase: true,
+      trim: true,
     },
-    email: {
+    password: {
       type: String,
       required: true,
-      index: true,
+      select: false, // No devolver password por defecto
     },
     full_name: {
       type: String,

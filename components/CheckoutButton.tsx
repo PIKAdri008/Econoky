@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 
 interface CheckoutButtonProps {
   priceId: string
@@ -9,18 +8,11 @@ interface CheckoutButtonProps {
 
 export function CheckoutButton({ priceId }: CheckoutButtonProps) {
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
 
   const handleCheckout = async () => {
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        throw new Error('Debes estar autenticado')
-      }
-
       // Crear sesión de checkout en Stripe
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
@@ -29,7 +21,6 @@ export function CheckoutButton({ priceId }: CheckoutButtonProps) {
         },
         body: JSON.stringify({
           priceId,
-          userId: user.id,
         }),
       })
 

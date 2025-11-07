@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         if (profile) {
           const subscriptionStatus = subscription.status === 'active' ? 'pro' : 'free'
 
-          await updateProfile(profile.id, {
+          await updateProfile(profile._id!.toString(), {
             subscription_status: subscriptionStatus,
             stripe_subscription_id: subscription.id,
           })

@@ -1,32 +1,32 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [user, setUser] = useState<any>(null)
-  const supabase = createClient()
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Verificar si hay un usuario autenticado
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user)
-    })
-
-    // Escuchar cambios en la autenticación
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase])
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setUser(data.user)
+        }
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/'
+    await fetch('/api/auth/logout', { method: 'POST' })
+    setUser(null)
+    router.push('/')
+    router.refresh()
   }
 
   return (
@@ -58,42 +58,44 @@ export function Navbar() {
             >
               Blog
             </Link>
-            {user ? (
-              <>
-                <Link 
-                  href="/dashboard" 
-                  className={`${pathname === '/dashboard' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
-                >
-                  Dashboard
-                </Link>
-                <Link 
-                  href="/profile" 
-                  className={`${pathname === '/profile' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
-                >
-                  Perfil
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-700 hover:text-primary-600 transition-colors"
-                >
-                  Cerrar sesión
-                </button>
-              </>
-            ) : (
-              <>
-                <Link 
-                  href="/auth/login" 
-                  className="text-gray-700 hover:text-primary-600 transition-colors"
-                >
-                  Iniciar sesión
-                </Link>
-                <Link 
-                  href="/auth/register" 
-                  className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Registrarse
-                </Link>
-              </>
+            {!loading && (
+              user ? (
+                <>
+                  <Link 
+                    href="/dashboard" 
+                    className={`${pathname === '/dashboard' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link 
+                    href="/profile" 
+                    className={`${pathname === '/profile' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
+                  >
+                    Perfil
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-700 hover:text-primary-600 transition-colors"
+                  >
+                    Cerrar sesión
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    href="/auth/login" 
+                    className="text-gray-700 hover:text-primary-600 transition-colors"
+                  >
+                    Iniciar sesión
+                  </Link>
+                  <Link 
+                    href="/auth/register" 
+                    className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Registrarse
+                  </Link>
+                </>
+              )
             )}
           </div>
         </div>
@@ -101,4 +103,3 @@ export function Navbar() {
     </nav>
   )
 }
-

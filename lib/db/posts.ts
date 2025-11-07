@@ -1,6 +1,7 @@
 import Post, { IPost } from '@/lib/models/Post'
 import Profile from '@/lib/models/Profile'
 import connectDB from '@/lib/mongodb'
+import mongoose from 'mongoose'
 
 export interface Post {
   id: string
@@ -28,55 +29,46 @@ export interface PostWithProfile {
 export async function getPosts(limit: number = 50): Promise<PostWithProfile[]> {
   await connectDB()
   
-  // Usar agregación para obtener posts con información del perfil
-  const posts = await Post.aggregate([
-    {
-      $sort: { created_at: -1 }
-    },
-    {
-      $limit: limit
-    },
-    {
-      $lookup: {
-        from: 'profiles',
-        localField: 'user_id',
-        foreignField: 'id',
-        as: 'profile'
-      }
-    },
-    {
-      $unwind: {
-        path: '$profile',
-        preserveNullAndEmptyArrays: true
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        id: { $toString: '$_id' },
-        user_id: 1,
-        title: 1,
-        content: 1,
-        created_at: 1,
-        updated_at: 1,
-        profile: {
-          id: '$profile.id',
-          full_name: '$profile.full_name',
-          email: '$profile.email'
-        }
-      }
-    }
-  ])
+  // Obtener posts y luego buscar perfiles (más simple para NoSQL)
+  const posts = await Post.find()
+    .sort({ created_at: -1 })
+    .limit(limit)
+    .lean()
 
-  return posts.map((post: any) => ({
-    id: post.id,
-    user_id: post.user_id,
-    title: post.title,
-    content: post.content,
-    created_at: post.created_at,
-    updated_at: post.updated_at,
-    profile: post.profile || undefined,
-  }))
+  // Obtener IDs únicos de usuarios y convertir a ObjectId válidos
+  const userIds = [...new Set(posts.map((p: any) => p.user_id))]
+  const objectIds = userIds
+    .filter(id => mongoose.Types.ObjectId.isValid(id))
+    .map(id => new mongoose.Types.ObjectId(id))
+  
+  // Buscar perfiles de esos usuarios
+  const profiles = objectIds.length > 0 
+    ? await Profile.find({ _id: { $in: objectIds } }).lean()
+    : []
+
+  // Crear mapa de perfiles por ID
+  const profileMap = new Map(
+    profiles.map((p: any) => [p._id.toString(), p])
+  )
+
+  // Combinar posts con perfiles
+  return posts.map((post: any) => {
+    const profile = profileMap.get(post.user_id)
+    return {
+      id: post._id.toString(),
+      user_id: post.user_id,
+      title: post.title,
+      content: post.content,
+      created_at: post.created_at,
+      updated_at: post.updated_at,
+      profile: profile ? {
+        id: profile._id.toString(),
+        full_name: profile.full_name || null,
+        email: profile.email || null,
+        avatar_url: profile.avatar_url || null,
+      } : undefined,
+    }
+  })
 }
 
 export async function getPostById(postId: string): Promise<Post | null> {

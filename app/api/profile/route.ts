@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { updateProfile, createProfile } from '@/lib/db/profiles'
+import { getCurrentUser } from '@/lib/auth'
+import { updateProfile } from '@/lib/db/profiles'
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
     if (!user) {
       return NextResponse.json(
@@ -28,29 +27,3 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const { id, email, full_name } = await request.json()
-
-    if (!id || !email) {
-      return NextResponse.json(
-        { error: 'ID y email son requeridos' },
-        { status: 400 }
-      )
-    }
-
-    await createProfile({
-      id,
-      email,
-      full_name,
-    })
-
-    return NextResponse.json({ success: true })
-  } catch (error: any) {
-    console.error('Error creando perfil:', error)
-    return NextResponse.json(
-      { error: error.message || 'Error al crear el perfil' },
-      { status: 500 }
-    )
-  }
-}

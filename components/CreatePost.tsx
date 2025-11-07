@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 export function CreatePost() {
   const router = useRouter()
@@ -10,7 +9,6 @@ export function CreatePost() {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,11 +16,6 @@ export function CreatePost() {
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        throw new Error('Debes estar autenticado para publicar')
-      }
 
       // Crear publicación usando la API
       const response = await fetch('/api/posts', {

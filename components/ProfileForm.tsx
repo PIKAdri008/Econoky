@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 interface ProfileFormProps {
   profile: any
@@ -14,7 +13,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,11 +21,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        throw new Error('Debes estar autenticado')
-      }
 
       // Actualizar perfil usando la API
       const response = await fetch('/api/profile', {

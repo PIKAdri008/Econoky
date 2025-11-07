@@ -1,18 +1,16 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from '@/components/ProfileForm'
+import { getCurrentUser } from '@/lib/auth'
 import { getProfile } from '@/lib/db/profiles'
 
 export default async function ProfilePage() {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   
   if (!user) {
     redirect('/auth/login')
   }
 
-  // Obtener perfil del usuario desde MySQL
+  // Obtener perfil del usuario desde MongoDB
   const profile = await getProfile(user.id)
 
   return (

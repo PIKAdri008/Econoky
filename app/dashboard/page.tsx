@@ -1,23 +1,21 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Wallet, TrendingUp, Users, FileText } from 'lucide-react'
+import { getCurrentUser } from '@/lib/auth'
 import { getProfile } from '@/lib/db/profiles'
 import { getPostsByUserId } from '@/lib/db/posts'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   
   if (!user) {
     redirect('/auth/login')
   }
 
-  // Obtener perfil del usuario desde MySQL
+  // Obtener perfil del usuario desde MongoDB
   const profile = await getProfile(user.id)
 
-  // Obtener publicaciones del usuario desde MySQL
+  // Obtener publicaciones del usuario desde MongoDB
   const posts = await getPostsByUserId(user.id, 5)
 
   return (

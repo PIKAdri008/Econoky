@@ -4,11 +4,11 @@ Esta guía te ayudará a configurar Econoky desde cero usando MongoDB como base 
 
 ## Arquitectura del Proyecto
 
-- **Supabase**: Solo para autenticación (login, registro)
-- **MongoDB**: Base de datos NoSQL para todos los datos (perfiles, publicaciones, transacciones)
+- **MongoDB**: Base de datos NoSQL para TODOS los datos, incluyendo autenticación (perfiles, publicaciones, transacciones)
+- **JWT**: Tokens JWT para autenticación (almacenados en cookies httpOnly)
 - **Stripe**: Para pagos y suscripciones
 
-**Nota**: MongoDB es NoSQL y no relacional, perfecto para redes sociales donde los datos pueden ser más flexibles y escalables.
+**Nota**: MongoDB es NoSQL y no relacional, perfecto para redes sociales. La autenticación se maneja completamente con MongoDB y JWT, sin necesidad de Supabase.
 
 ## Paso 1: Instalar Dependencias
 
@@ -65,21 +65,18 @@ MongoDB crea la base de datos automáticamente cuando insertas el primer documen
 
 La base de datos se llamará `econoky` (o el nombre que especifiques en la URI de conexión).
 
-## Paso 3: Configurar Supabase (Solo Autenticación)
+## Paso 3: Configurar JWT Secret
 
-### 3.1 Crear Proyecto en Supabase
+Necesitas una clave secreta para firmar los tokens JWT. Puedes generar una aleatoria:
 
-1. Ve a [https://supabase.com](https://supabase.com) y crea una cuenta (si no tienes una)
-2. Crea un nuevo proyecto
-3. **Importante**: Solo necesitas la autenticación, NO necesitas crear tablas en Supabase
+**En Linux/macOS:**
+```bash
+openssl rand -base64 32
+```
 
-### 3.2 Obtener las Claves
+**O usa cualquier string aleatorio y seguro**
 
-En Supabase, ve a **Settings > API** y copia:
-- **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-- **anon public key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-**Nota**: No necesitas la `SUPABASE_SERVICE_ROLE_KEY` ya que no usamos Supabase para datos.
+Esta clave se usará en la variable de entorno `JWT_SECRET`.
 
 ## Paso 4: Configurar Stripe
 
@@ -127,16 +124,15 @@ Cuando despliegues en Vercel:
 Crea un archivo `.env.local` en la raíz del proyecto con este contenido:
 
 ```env
-# Supabase (solo para autenticación)
-NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_aqui
-
 # MongoDB
 # Para MongoDB local:
 MONGODB_URI=mongodb://localhost:27017/econoky
 
 # Para MongoDB Atlas (recomendado para producción):
 # MONGODB_URI=mongodb+srv://usuario:contraseña@cluster.mongodb.net/econoky?retryWrites=true&w=majority
+
+# JWT Secret (genera uno aleatorio y seguro)
+JWT_SECRET=tu-clave-secreta-jwt-muy-segura-aqui
 
 # Stripe
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_tu_clave_aqui
@@ -150,6 +146,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 **Importante**: 
 - Si usas MongoDB Atlas, reemplaza la URI con tu connection string
+- Genera un `JWT_SECRET` seguro y aleatorio (usa `openssl rand -base64 32`)
 - Reemplaza todos los valores con tus claves reales
 - Nunca subas este archivo a Git (ya está en `.gitignore`)
 
@@ -183,8 +180,8 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 ## Paso 7: Probar la Aplicación
 
 1. **Registro**: Ve a `/auth/register` y crea una cuenta
-   - Esto creará el usuario en Supabase (autenticación)
-   - Y automáticamente creará el perfil en MongoDB
+   - Esto creará el usuario directamente en MongoDB con contraseña hasheada
+   - Se generará un token JWT para la sesión
 2. **Login**: Inicia sesión en `/auth/login`
 3. **Dashboard**: Verás tu dashboard en `/dashboard` con datos desde MongoDB
 4. **Comunidad**: Crea publicaciones en `/community` (se guardan en MongoDB)
@@ -215,8 +212,8 @@ Para producción, usa **MongoDB Atlas** (recomendado):
 1. Sube tu código a GitHub
 2. Ve a [https://vercel.com](https://vercel.com) y conecta tu repositorio
 3. En la configuración, añade todas las variables de entorno:
-   - Variables de Supabase (autenticación)
    - `MONGODB_URI` con tu connection string de MongoDB Atlas
+   - `JWT_SECRET` con tu clave secreta JWT
    - Variables de Stripe
    - `NEXT_PUBLIC_APP_URL` con tu dominio de Vercel
 4. Configura el webhook de Stripe con la URL de producción: `https://tu-dominio.vercel.app/api/stripe/webhook`
@@ -224,8 +221,9 @@ Para producción, usa **MongoDB Atlas** (recomendado):
 
 ## Solución de Problemas
 
-### Error: "Missing Supabase URL"
-- Verifica que `.env.local` existe y tiene todas las variables
+### Error: "JWT_SECRET is required"
+- Verifica que `.env.local` tiene la variable `JWT_SECRET`
+- Genera una nueva clave secreta si es necesario
 - Reinicia el servidor de desarrollo
 
 ### Error: "MongoNetworkError" o "Connection refused"
@@ -251,8 +249,9 @@ Para producción, usa **MongoDB Atlas** (recomendado):
 - Revisa la consola del navegador para más detalles
 
 ### Error: "Unauthorized" en las páginas
-- Verifica que estás autenticado (Supabase maneja la autenticación)
+- Verifica que estás autenticado (JWT maneja la autenticación)
 - Asegúrate de haber iniciado sesión correctamente
+- Verifica que la cookie `auth-token` está presente en el navegador
 
 ### Error al crear perfil después del registro
 - Verifica que MongoDB está accesible
@@ -330,7 +329,8 @@ Documentos que almacenan transacciones financieras.
 - [Documentación de MongoDB](https://docs.mongodb.com/)
 - [Documentación de Mongoose](https://mongoosejs.com/docs/)
 - [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-- [Documentación de Supabase Auth](https://supabase.com/docs/guides/auth)
+- [Documentación de JWT](https://jwt.io/)
+- [Documentación de bcryptjs](https://github.com/dcodeIO/bcrypt.js)
 - [Documentación de Stripe](https://stripe.com/docs)
 - [Documentación de Tailwind CSS](https://tailwindcss.com/docs)
 
@@ -340,5 +340,6 @@ Documentos que almacenan transacciones financieras.
 - **Backups**: Configura backups regulares de tu base de datos MongoDB (MongoDB Atlas lo hace automáticamente)
 - **Conexiones**: La conexión se cachea para evitar múltiples conexiones en desarrollo
 - **NoSQL**: Recuerda que MongoDB es NoSQL - no hay relaciones estrictas, solo referencias
-- **Autenticación vs Datos**: Supabase solo maneja la autenticación, todos los datos están en MongoDB
+- **Autenticación**: La autenticación se maneja completamente con MongoDB y JWT, sin servicios externos
+- **Seguridad JWT**: Usa un `JWT_SECRET` fuerte y nunca lo expongas
 - **Escalabilidad**: MongoDB es ideal para redes sociales porque escala horizontalmente fácilmente

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -12,7 +11,6 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,42 +18,22 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // Registrar usuario en Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email,
+          password,
+          full_name: fullName,
+        }),
       })
 
-      if (authError) throw authError
+      const data = await response.json()
 
-      // Crear perfil en MySQL
-      if (authData.user) {
-        try {
-          const response = await fetch('/api/profile', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              id: authData.user.id,
-              email: authData.user.email || email,
-              full_name: fullName,
-            }),
-          })
-
-          if (!response.ok) {
-            console.error('Error creando perfil en MySQL')
-            // No lanzamos error aquí porque el usuario ya está creado
-          }
-        } catch (error) {
-          console.error('Error creando perfil:', error)
-          // No lanzamos error aquí porque el usuario ya está creado
-        }
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al registrarse')
       }
 
       router.push('/auth/login?registered=true')
@@ -151,4 +129,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-

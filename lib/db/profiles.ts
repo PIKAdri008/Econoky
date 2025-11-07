@@ -22,12 +22,12 @@ export interface Profile {
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   await connectDB()
-  const profile = await Profile.findOne({ id: userId }).lean()
+  const profile = await Profile.findById(userId).select('-password').lean()
   
   if (!profile) return null
 
   return {
-    id: profile.id,
+    id: profile._id!.toString(),
     email: profile.email,
     full_name: profile.full_name || null,
     avatar_url: profile.avatar_url || null,
@@ -47,14 +47,17 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 }
 
 export async function createProfile(data: {
-  id: string
   email: string
+  password: string
   full_name?: string
-}): Promise<void> {
+}): Promise<string> {
   await connectDB()
-  await Profile.create({
-    id: data.id,
-    email: data.email,
+  const { hashPassword } = await import('@/lib/auth')
+  const hashedPassword = await hashPassword(data.password)
+  
+  const profile = await Profile.create({
+    email: data.email.toLowerCase(),
+    password: hashedPassword,
     full_name: data.full_name,
     balance: 0.0,
     subscription_status: 'free',
@@ -64,6 +67,8 @@ export async function createProfile(data: {
       following_count: 0,
     },
   })
+  
+  return profile._id.toString()
 }
 
 export async function updateProfile(
@@ -84,5 +89,5 @@ export async function updateProfile(
   }>
 ): Promise<void> {
   await connectDB()
-  await Profile.updateOne({ id: userId }, { $set: data })
+  await Profile.findByIdAndUpdate(userId, { $set: data })
 }

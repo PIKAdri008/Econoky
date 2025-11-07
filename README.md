@@ -27,14 +27,13 @@ npm install
 Crea un archivo `.env.local` en la raíz del proyecto con las siguientes variables:
 
 ```env
-# Supabase (solo para autenticación)
-NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_clave_anonima_de_supabase
-
 # MongoDB (NoSQL)
 # Local: mongodb://localhost:27017/econoky
 # Atlas: mongodb+srv://usuario:contraseña@cluster.mongodb.net/econoky
 MONGODB_URI=mongodb://localhost:27017/econoky
+
+# JWT Secret (genera uno aleatorio: openssl rand -base64 32)
+JWT_SECRET=tu-clave-secreta-jwt-muy-segura
 
 # Stripe
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=tu_clave_publica_de_stripe
@@ -51,10 +50,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
    - MongoDB crea las colecciones automáticamente, no necesitas scripts
    - Ver `SETUP.md` para instrucciones detalladas
 
-4. **Configurar Supabase (Solo Autenticación)**:
-   - Crea un nuevo proyecto en Supabase
-   - Solo necesitas las claves de API para autenticación
-   - No necesitas crear tablas en Supabase
+4. **Configurar JWT Secret**:
+   - Genera una clave secreta: `openssl rand -base64 32`
+   - Añádela a `.env.local` como `JWT_SECRET`
 
 5. **Configurar Stripe**:
    - Crea un producto y precio en Stripe (modo test)
@@ -90,10 +88,9 @@ Econoky/
 
 ## 🗄️ Base de Datos
 
-El proyecto usa una arquitectura híbrida con MongoDB NoSQL:
+El proyecto usa MongoDB NoSQL para TODO:
 
-- **Supabase**: Solo para autenticación (login, registro)
-- **MongoDB**: Base de datos NoSQL para todos los datos de la aplicación:
+- **MongoDB**: Base de datos NoSQL para todos los datos, incluyendo autenticación:
   - **profiles**: Información de los usuarios (con estadísticas embebidas)
   - **posts**: Publicaciones de la red social (con contador de likes embebido)
   - **transactions**: Transacciones y movimientos de saldo
@@ -124,8 +121,9 @@ El proyecto está configurado para usar Stripe en modo test. Asegúrate de:
 ## 📝 Notas
 
 - Este es un proyecto de aprendizaje, adapta la seguridad según tus necesidades
-- Supabase solo se usa para autenticación, todos los datos están en MongoDB (NoSQL)
+- La autenticación se maneja completamente con MongoDB y JWT (sin Supabase)
 - MongoDB es NoSQL y no relacional, perfecto para redes sociales
+- Usa un `JWT_SECRET` fuerte y seguro en producción
 - Recuerda configurar correctamente los webhooks de Stripe
 - Asegúrate de tener MongoDB corriendo antes de iniciar la aplicación
 - Para producción, usa MongoDB Atlas (gratis hasta cierto límite)

@@ -1,20 +1,18 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { CheckoutButton } from '@/components/CheckoutButton'
+import { getCurrentUser } from '@/lib/auth'
 import { getProfile } from '@/lib/db/profiles'
 
 export default async function PlansPage() {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   
   if (!user) {
     redirect('/auth/login')
   }
 
-  // Obtener perfil del usuario desde MySQL
+  // Obtener perfil del usuario desde MongoDB
   const profile = await getProfile(user.id)
 
   const plans = [

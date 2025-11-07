@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const { priceId, userId } = await request.json()
+    const { priceId } = await request.json()
 
-    if (!priceId || !userId) {
+    if (!priceId) {
       return NextResponse.json(
         { error: 'Faltan parámetros requeridos' },
         { status: 400 }
       )
     }
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
-    if (!user || user.id !== userId) {
+    if (!user) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -35,9 +34,9 @@ export async function POST(request: NextRequest) {
       ],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/plans?canceled=true`,
-      client_reference_id: userId,
+      client_reference_id: user.id,
       metadata: {
-        userId,
+        userId: user.id,
       },
     })
 
