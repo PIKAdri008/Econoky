@@ -3,7 +3,7 @@ import { getPosts } from '@/lib/db/posts'
 
 export async function PostList() {
   try {
-    // Obtener todas las publicaciones con información del usuario desde MySQL
+    // Obtener todas las publicaciones con información del usuario desde MongoDB
     const posts = await getPosts(50)
 
     if (!posts || posts.length === 0) {

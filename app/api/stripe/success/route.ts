@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     const userId = session.client_reference_id
 
-    // Actualizar el perfil del usuario a suscripción Pro en MySQL
+    // Actualizar el perfil del usuario a suscripción Pro en MongoDB
     await updateProfile(userId, {
       subscription_status: 'pro',
       stripe_customer_id: session.customer as string,

@@ -1,6 +1,6 @@
 # Econoky
 
-Plataforma web para gestionar tu dinero de manera sencilla y efectiva. Construida con Next.js, Tailwind CSS, Supabase y Stripe.
+Plataforma web para gestionar tu dinero de manera sencilla y efectiva. Construida con Next.js, Tailwind CSS, MongoDB y Stripe.
 
 ## 🚀 Características
 
@@ -13,7 +13,7 @@ Plataforma web para gestionar tu dinero de manera sencilla y efectiva. Construid
 ## 📋 Requisitos Previos
 
 - Node.js 18+ instalado
-- Cuenta en [Supabase](https://supabase.com)
+- MongoDB instalado localmente o cuenta en [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 - Cuenta en [Stripe](https://stripe.com) (modo test)
 
 ## 🛠️ Instalación
@@ -80,9 +80,9 @@ Econoky/
 │   └── plans/             # Página de planes
 ├── components/            # Componentes reutilizables
 ├── lib/                   # Utilidades y configuraciones
-│   ├── supabase/          # Clientes de Supabase
+│   ├── mongodb.ts         # Cliente de MongoDB
 │   └── stripe.ts          # Cliente de Stripe
-├── supabase/              # Esquema de base de datos
+├── mongodb/               # Documentación de MongoDB
 └── public/                # Archivos estáticos
 ```
 
@@ -97,7 +97,7 @@ El proyecto usa MongoDB NoSQL para TODO:
 
 **Características del diseño NoSQL:**
 - No relacional: Sin foreign keys ni relaciones estrictas
-- Referencias por ID: Se usan IDs de Supabase como referencias simples
+- Referencias por ID: Se usan ObjectIds de MongoDB como referencias simples
 - Agregaciones: Se usan agregaciones de MongoDB para unir datos
 - Embedding: Datos relacionados embebidos cuando tiene sentido
 - Escalabilidad: Diseñado para escalar horizontalmente

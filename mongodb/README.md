@@ -28,7 +28,9 @@ Los índices están optimizados para:
 - Ordenamiento por fecha
 - Consultas frecuentes
 
-## Migración desde MySQL
+## Notas
 
-Si tenías datos en MySQL, necesitarás migrarlos manualmente o usar un script de migración.
+- Los datos se crean automáticamente cuando se insertan los primeros documentos
+- No necesitas ejecutar scripts de migración
+- MongoDB crea las colecciones e índices automáticamente
 

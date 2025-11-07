@@ -265,8 +265,7 @@ Documentos que almacenan información de usuarios. No hay relaciones, solo refer
 
 ```javascript
 {
-  _id: ObjectId,
-  id: "uuid-de-supabase", // Clave única
+  _id: ObjectId, // ID único de MongoDB
   email: "usuario@example.com",
   full_name: "Nombre Usuario",
   avatar_url: "https://...",
@@ -291,7 +290,7 @@ Documentos que almacenan publicaciones. Usa `user_id` como referencia (no foreig
 ```javascript
 {
   _id: ObjectId,
-  user_id: "uuid-de-supabase", // Referencia (no relacional)
+  user_id: "ObjectId-del-perfil", // Referencia (no relacional)
   title: "Título del post",
   content: "Contenido del post",
   likes: 0, // Contador embebido (no relacional)
@@ -306,7 +305,7 @@ Documentos que almacenan transacciones financieras.
 ```javascript
 {
   _id: ObjectId,
-  user_id: "uuid-de-supabase", // Referencia (no relacional)
+  user_id: "ObjectId-del-perfil", // Referencia (no relacional)
   amount: 10.50,
   type: "income" | "expense" | "subscription" | "refund",
   description: "Descripción opcional",
@@ -317,7 +316,7 @@ Documentos que almacenan transacciones financieras.
 ## Características del Diseño NoSQL
 
 - **No Relacional**: No hay foreign keys ni relaciones estrictas
-- **Referencias por ID**: Se usan IDs de Supabase como referencias simples
+- **Referencias por ID**: Se usan ObjectIds de MongoDB como referencias simples
 - **Agregaciones**: Se usan agregaciones de MongoDB para unir datos cuando es necesario
 - **Embedding**: Los datos relacionados se pueden embebir (como `stats` en `profiles`)
 - **Escalabilidad**: Diseñado para escalar horizontalmente
