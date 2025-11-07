@@ -6,7 +6,7 @@ connectDB()
 
 export interface IPost {
   _id?: mongoose.Types.ObjectId
-  user_id: string // UUID de Supabase (no relacional, solo referencia)
+  user_id: string // ObjectId del perfil como string (no relacional, solo referencia)
   title: string
   content: string
   likes?: number // Contador de likes (no relacional)

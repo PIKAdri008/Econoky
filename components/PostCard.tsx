@@ -2,7 +2,6 @@
 
 import { Heart, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 
 interface PostCardProps {
   post: {
@@ -10,19 +9,21 @@ interface PostCardProps {
     title: string
     content: string
     created_at: string
-    profiles?: {
-      full_name: string
-      email: string
+    profile?: {
+      id: string
+      full_name: string | null
+      email: string | null
+      avatar_url?: string | null
     }
   }
 }
 
 export function PostCard({ post }: PostCardProps) {
   const [likes, setLikes] = useState(0)
-  const supabase = createClient()
 
   const handleLike = async () => {
-    // Aquí podrías implementar un sistema de likes más completo
+    // Aquí podrías implementar un sistema de likes más completo usando la API
+    // Por ahora solo actualizamos el estado local
     setLikes(likes + 1)
   }
 
@@ -32,7 +33,7 @@ export function PostCard({ post }: PostCardProps) {
         <div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">{post.title}</h3>
           <p className="text-sm text-gray-600">
-            Por {post.profiles?.full_name || post.profiles?.email || 'Usuario'}
+            Por {post.profile?.full_name || post.profile?.email || 'Usuario'}
           </p>
         </div>
         <span className="text-xs text-gray-400">
@@ -64,4 +65,3 @@ export function PostCard({ post }: PostCardProps) {
     </div>
   )
 }
-

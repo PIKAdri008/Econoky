@@ -6,7 +6,7 @@ connectDB()
 
 export interface ITransaction {
   _id?: mongoose.Types.ObjectId
-  user_id: string // UUID de Supabase (no relacional, solo referencia)
+  user_id: string // ObjectId del perfil como string (no relacional, solo referencia)
   amount: number
   type: 'income' | 'expense' | 'subscription' | 'refund'
   description?: string
