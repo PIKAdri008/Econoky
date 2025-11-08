@@ -65,7 +65,7 @@ export function CreatePost() {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
             placeholder="Escribe un título..."
           />
         </div>
@@ -79,7 +79,7 @@ export function CreatePost() {
             rows={4}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
             placeholder="Comparte tus pensamientos..."
           />
         </div>

@@ -12,7 +12,7 @@ export default async function CommunityPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-black">Comunidad Econoky</h1>
+      <h1 className="text-3xl font-bold mb-8 text-white">Comunidad Econoky</h1>
       <p className="text-gray-600 mb-8">
         Comparte tus experiencias, aprende de otros y conecta con la comunidad.
       </p>

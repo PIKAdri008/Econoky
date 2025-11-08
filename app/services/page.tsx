@@ -4,7 +4,7 @@ import { Calculator, Users, TrendingUp } from 'lucide-react'
 export default function ServicesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center text-black">Nuestros Servicios</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center text-white">Nuestros Servicios</h1>
       
       <div className="grid md:grid-cols-3 gap-8">
         <div className="bg-white p-8 rounded-lg shadow-md">
