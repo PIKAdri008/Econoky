@@ -17,7 +17,15 @@ export async function PostList() {
     return (
       <div className="space-y-6">
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard 
+            key={post.id} 
+            post={{ 
+              ...post, 
+              created_at: post.created_at instanceof Date 
+                ? post.created_at.toISOString() 
+                : post.created_at 
+            }} 
+          />
         ))}
       </div>
     )
@@ -29,4 +37,3 @@ export async function PostList() {
     )
   }
 }
-

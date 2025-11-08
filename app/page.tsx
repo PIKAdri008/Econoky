@@ -25,7 +25,7 @@ export default function Home() {
       {/* ¿Qué es Econoky? */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">¿Qué es Econoky?</h2>
+          <h2 className="text-4xl font-bold text-center mb-12 text-black">¿Qué es Econoky?</h2>
           <p className="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-8">
             Econoky es una plataforma global que transforma la forma en que interactúas con tu dinero. 
             Ofrecemos herramientas gratuitas, una red social para compartir experiencias relacionadas 
@@ -45,11 +45,11 @@ export default function Home() {
       {/* Nuestros servicios */}
       <section className="py-16 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">Nuestros servicios</h2>
+          <h2 className="text-4xl font-bold text-center mb-12 text-black">Nuestros servicios</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-lg shadow-md">
               <Calculator className="w-12 h-12 text-primary-600 mb-4" />
-              <h3 className="text-2xl font-bold mb-4">Calculadoras Financieras</h3>
+              <h3 className="text-2xl font-bold mb-4 text-black">Calculadoras Financieras</h3>
               <p className="text-gray-700">
                 Toma decisiones informadas con nuestras calculadoras financieras gratuitas. 
                 Desde el cálculo de préstamos hasta la planificación de ahorros, te ayudamos 
@@ -58,7 +58,7 @@ export default function Home() {
             </div>
             <div className="bg-white p-8 rounded-lg shadow-md">
               <Users className="w-12 h-12 text-primary-600 mb-4" />
-              <h3 className="text-2xl font-bold mb-4">Conecta y aprende</h3>
+              <h3 className="text-2xl font-bold mb-4 text-black">Conecta y aprende</h3>
               <p className="text-gray-700">
                 Únete a nuestra red social y comparte tus éxitos y desafíos en un espacio 
                 seguro y estimulante. Aprende de la comunidad y encuentra apoyo en tu 
@@ -72,7 +72,7 @@ export default function Home() {
                   Pro
                 </span>
               </div>
-              <h3 className="text-2xl font-bold mb-4">Diagnóstico Personalizado</h3>
+              <h3 className="text-2xl font-bold mb-4 text-black">Diagnóstico Personalizado</h3>
               <p className="text-gray-700 mb-4">
                 Descubre cómo están tus finanzas con nuestra herramienta de análisis por suscripción. 
                 Por solo 4.99 euros al mes, recibirás un diagnóstico detallado e información real 
@@ -86,32 +86,32 @@ export default function Home() {
       {/* ¿Por qué Econoky? */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">¿Por qué Econoky?</h2>
+          <h2 className="text-4xl font-bold text-center mb-12 text-black">¿Por qué Econoky?</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center">
               <Shield className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Accesibilidad</h3>
+              <h3 className="text-xl font-bold mb-2 text-black">Accesibilidad</h3>
               <p className="text-gray-700">
                 Herramientas financieras gratuitas y una red social inclusiva.
               </p>
             </div>
             <div className="text-center">
               <Sparkles className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Personalización</h3>
+              <h3 className="text-xl font-bold mb-2 text-black">Personalización</h3>
               <p className="text-gray-700">
                 Diagnósticos y seguimiento personalizados.
               </p>
             </div>
             <div className="text-center">
               <Users className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Comunidad</h3>
+              <h3 className="text-xl font-bold mb-2 text-black">Comunidad</h3>
               <p className="text-gray-700">
                 Un entorno de apoyo y aprendizaje continuo.
               </p>
             </div>
             <div className="text-center">
               <Heart className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Innovación</h3>
+              <h3 className="text-xl font-bold mb-2 text-black">Innovación</h3>
               <p className="text-gray-700">
                 Soluciones creativas y disruptivas para tus finanzas.
               </p>
@@ -123,13 +123,13 @@ export default function Home() {
       {/* Cómo funciona */}
       <section className="py-16 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">¿Cómo funciona?</h2>
+          <h2 className="text-4xl font-bold text-center mb-12 text-black">¿Cómo funciona?</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                 1
               </div>
-              <h3 className="text-2xl font-bold mb-4">Regístrate Gratis</h3>
+              <h3 className="text-2xl font-bold mb-4 text-black">Regístrate Gratis</h3>
               <p className="text-gray-700">
                 Crea tu cuenta en pocos pasos.
               </p>
@@ -138,7 +138,7 @@ export default function Home() {
               <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                 2
               </div>
-              <h3 className="text-2xl font-bold mb-4">Usa las herramientas</h3>
+              <h3 className="text-2xl font-bold mb-4 text-black">Usa las herramientas</h3>
               <p className="text-gray-700">
                 Prueba nuestras calculadoras financieras y conéctate con otros usuarios.
               </p>
@@ -147,7 +147,7 @@ export default function Home() {
               <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                 3
               </div>
-              <h3 className="text-2xl font-bold mb-4">Mejora tus finanzas</h3>
+              <h3 className="text-2xl font-bold mb-4 text-black">Mejora tus finanzas</h3>
               <p className="text-gray-700">
                 Obtén un diagnóstico personalizado y mejora tu salud financiera.
               </p>
@@ -176,4 +176,3 @@ export default function Home() {
     </div>
   )
 }
-

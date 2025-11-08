@@ -45,7 +45,7 @@ export default async function PlansPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-4 text-center">Planes y Precios</h1>
+      <h1 className="text-3xl font-bold mb-4 text-center text-white">Planes y Precios</h1>
       <p className="text-gray-600 mb-12 text-center">
         Elige el plan que mejor se adapte a tus necesidades
       </p>
@@ -63,9 +63,9 @@ export default async function PlansPage() {
                 Recomendado
               </div>
             )}
-            <h2 className="text-2xl font-bold mb-2">{plan.name}</h2>
+            <h2 className="text-2xl font-bold mb-2 text-black">{plan.name}</h2>
             <div className="mb-6">
-              <span className="text-4xl font-bold">€{plan.price}</span>
+              <span className="text-4xl font-bold text-black">€{plan.price}</span>
               {plan.period !== 'Siempre' && (
                 <span className="text-gray-600">/{plan.period}</span>
               )}

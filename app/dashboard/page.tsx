@@ -20,7 +20,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8 text-white">Dashboard</h1>
       
       {/* Tarjetas de resumen */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
@@ -78,7 +78,7 @@ export default async function DashboardPage() {
       {/* Acciones rápidas */}
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Acciones rápidas</h2>
+          <h2 className="text-xl font-bold mb-4 text-black">Acciones rápidas</h2>
           <div className="space-y-3">
             <Link
               href="/community"
@@ -102,7 +102,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Tus últimas publicaciones</h2>
+          <h2 className="text-xl font-bold mb-4 text-black">Tus últimas publicaciones</h2>
           {posts && posts.length > 0 ? (
             <div className="space-y-4">
               {posts.map((post: any) => (
@@ -129,4 +129,3 @@ export default async function DashboardPage() {
     </div>
   )
 }
-

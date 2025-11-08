@@ -13,10 +13,10 @@ if (!MONGODB_URI) {
  * Esto previene que las conexiones crezcan exponencialmente
  * durante las recargas de API.
  */
-let cached = global.mongoose
+let cached = (global as any).mongoose
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null }
+  cached = (global as any).mongoose = { conn: null, promise: null }
 }
 
 async function connectDB() {
@@ -29,8 +29,8 @@ async function connectDB() {
       bufferCommands: false,
     }
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      return mongoose
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then(() => {
+      return mongoose.connection
     })
   }
 
@@ -45,4 +45,3 @@ async function connectDB() {
 }
 
 export default connectDB
-

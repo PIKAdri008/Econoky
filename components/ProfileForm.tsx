@@ -50,7 +50,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">Editar perfil</h2>
+      <h2 className="text-xl font-bold mb-4 text-black">Editar perfil</h2>
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
           {error}
@@ -86,4 +86,3 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     </div>
   )
 }
-

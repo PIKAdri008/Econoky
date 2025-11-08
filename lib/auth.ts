@@ -28,14 +28,19 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 export function generateToken(userId: string, email: string): string {
   return jwt.sign(
     { userId, email },
-    JWT_SECRET,
+    JWT_SECRET as string,
     { expiresIn: JWT_EXPIRES_IN }
   )
 }
 
-export function verifyToken(token: string): { userId: string; email: string } | null {
+export function verifyToken(
+  token: string
+): { userId: string; email: string } | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string }
+    const decoded = jwt.verify(token, JWT_SECRET as string) as unknown as {
+      userId: string
+      email: string
+    }
     return decoded
   } catch {
     return null
