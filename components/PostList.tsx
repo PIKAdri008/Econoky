@@ -1,10 +1,12 @@
 import { PostCard } from './PostCard'
 import { getPosts } from '@/lib/db/posts'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function PostList() {
   try {
+    const user = await getCurrentUser()
     // Obtener todas las publicaciones con información del usuario desde MongoDB
-    const posts = await getPosts(50)
+    const posts = await getPosts(50, user?.id)
 
     if (!posts || posts.length === 0) {
       return (

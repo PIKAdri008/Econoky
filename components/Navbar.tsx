@@ -43,8 +43,8 @@ export function Navbar() {
           
           <div className="hidden md:flex items-center space-x-8">
             <Link 
-              href="/" 
-              className={`${pathname === '/' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
+              href={user ? "/inicio" : "/"} 
+              className={`${pathname === '/' || pathname === '/inicio' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
             >
               Inicio
             </Link>
