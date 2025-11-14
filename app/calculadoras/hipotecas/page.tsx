@@ -119,27 +119,27 @@ export default function HipotecasPage() {
                 <div className="mt-4 pt-4 border-t space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Cuota:</span>
-                    <span className="font-semibold">{resultados.cuota} €</span>
+                    <span className="font-semibold text-black">{resultados.cuota} €</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Número de cuotas:</span>
-                    <span className="font-semibold">{resultados.numCuotas}</span>
+                    <span className="font-semibold text-black">{resultados.numCuotas}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tipo mensual:</span>
-                    <span className="font-semibold">{resultados.tipoMensual} %</span>
+                    <span className="font-semibold text-black">{resultados.tipoMensual} %</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Pagarás en total:</span>
-                    <span className="font-semibold">{resultados.totalPagar} €</span>
+                    <span className="font-semibold text-black">{resultados.totalPagar} €</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Intereses que pagarás:</span>
-                    <span className="font-semibold">{resultados.interesesPagar} €</span>
+                    <span className="font-semibold text-black">{resultados.interesesPagar} €</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Sobre el capital supone:</span>
-                    <span className="font-semibold">{resultados.sobreCapital} %</span>
+                    <span className="font-semibold text-black">{resultados.sobreCapital} %</span>
                   </div>
                 </div>
               )}

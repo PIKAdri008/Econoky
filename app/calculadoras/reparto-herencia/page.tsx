@@ -137,8 +137,8 @@ export default function RepartoHerenciaPage() {
                     <span className="text-gray-700">Cónyuge</span>
                     <div className="flex items-center gap-2">
                       <div className="w-32 h-4 bg-blue-500 rounded"></div>
-                      <span className="font-semibold">{resultados.opcionA.conyuge.toFixed(2)} €</span>
-                      <span className="text-sm text-gray-500">
+                      <span className="font-semibold text-black">{resultados.opcionA.conyuge.toFixed(2)} €</span>
+                      <span className="text-sm text-black">
                         ({((resultados.opcionA.conyuge / activoNeto) * 100).toFixed(2)}%)
                       </span>
                     </div>
@@ -148,7 +148,7 @@ export default function RepartoHerenciaPage() {
                       <span className="text-gray-700">Hijo {index + 1}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-32 h-4 bg-purple-500 rounded"></div>
-                        <span className="font-semibold">{hijo.toFixed(2)} €</span>
+                        <span className="font-semibold text-black">{hijo.toFixed(2)} €</span>
                         <span className="text-sm text-gray-500">
                           ({((hijo / activoNeto) * 100).toFixed(2)}%)
                         </span>
@@ -168,7 +168,7 @@ export default function RepartoHerenciaPage() {
                     <span className="text-gray-700">Cónyuge</span>
                     <div className="flex items-center gap-2">
                       <div className="w-32 h-4 bg-blue-500 rounded"></div>
-                      <span className="font-semibold">{resultados.opcionB.conyuge.toFixed(2)} €</span>
+                      <span className="font-semibold text-black">{resultados.opcionB.conyuge.toFixed(2)} €</span>
                       <span className="text-sm text-gray-500">
                         ({((resultados.opcionB.conyuge / activoNeto) * 100).toFixed(2)}%)
                       </span>
@@ -179,7 +179,7 @@ export default function RepartoHerenciaPage() {
                       <span className="text-gray-700">Hijo {index + 1}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-32 h-4 bg-purple-500 rounded"></div>
-                        <span className="font-semibold">{hijo.toFixed(2)} €</span>
+                        <span className="font-semibold text-black">{hijo.toFixed(2)} €</span>
                         <span className="text-sm text-gray-500">
                           ({((hijo / activoNeto) * 100).toFixed(2)}%)
                         </span>
@@ -199,7 +199,7 @@ export default function RepartoHerenciaPage() {
                     <span className="text-gray-700">Cónyuge</span>
                     <div className="flex items-center gap-2">
                       <div className="w-32 h-4 bg-blue-500 rounded"></div>
-                      <span className="font-semibold">{resultados.opcionC.conyuge.toFixed(2)} €</span>
+                      <span className="font-semibold text-black">{resultados.opcionC.conyuge.toFixed(2)} €</span>
                       <span className="text-sm text-gray-500">
                         ({((resultados.opcionC.conyuge / activoNeto) * 100).toFixed(2)}%)
                       </span>
@@ -210,7 +210,7 @@ export default function RepartoHerenciaPage() {
                       <span className="text-gray-700">Hijo {index + 1}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-32 h-4 bg-purple-500 rounded"></div>
-                        <span className="font-semibold">{hijo.toFixed(2)} €</span>
+                        <span className="font-semibold text-black">{hijo.toFixed(2)} €</span>
                         <span className="text-sm text-gray-500">
                           ({((hijo / activoNeto) * 100).toFixed(2)}%)
                         </span>

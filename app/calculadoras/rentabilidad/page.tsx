@@ -178,22 +178,22 @@ export default function RentabilidadPage() {
                             title={`Intereses: ${dato.interesesRecibidos.toFixed(0)}€`}
                           ></div>
                         </div>
-                        <p className="text-xs text-center mt-1">{dato.año} año{dato.año > 1 ? 's' : ''}</p>
+                        <p className="text-xs text-center mt-1 font-bold text-primary-600">{dato.año} año{dato.año > 1 ? 's' : ''}</p>
                       </div>
                     </div>
                   )
                 })}
               </div>
-              <div className="flex gap-4 mt-4 text-xs">
+              <div className="flex gap-4 mt-4 text-black">
                 <div className="flex items-center gap-1">
                   <div className="w-4 h-4 bg-purple-500"></div>
                   <span>Dinero disponible</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 text-black">
                   <div className="w-4 h-4 bg-red-500"></div>
                   <span>Dinero invertido</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 text-black">
                   <div className="w-4 h-4 bg-blue-300"></div>
                   <span>Intereses recibidos</span>
                 </div>
