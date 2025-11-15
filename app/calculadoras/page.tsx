@@ -6,7 +6,8 @@ import {
   Calculator, 
   Building2, 
   Briefcase,
-  Scale
+  Scale,
+  Clock
 } from 'lucide-react'
 
 const calculadoras = [
@@ -72,6 +73,15 @@ const calculadoras = [
     color: 'text-indigo-500',
     bgColor: 'bg-indigo-50',
     href: '/calculadoras/reparto-herencia'
+  },
+  {
+    id: 'jubilacion-pension',
+    title: 'Calculadora de Jubilación y Pensión',
+    description: 'Calcula tu pensión de jubilación y planifica tu futuro financiero.',
+    icon: Clock,
+    color: 'text-orange-500',
+    bgColor: 'bg-orange-50',
+    href: '/calculadoras/jubilacion-pension'
   }
 ]
 
@@ -111,4 +121,3 @@ export default function CalculadorasPage() {
     </div>
   )
 }
-
