@@ -15,6 +15,7 @@ export interface AuthUser {
   id: string
   email: string
   full_name?: string
+  role?: 'user' | 'admin'
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -66,9 +67,20 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       id: profile._id!.toString(),
       email: profile.email,
       full_name: profile.full_name,
+      role: profile.role || 'user',
     }
   } catch {
     return null
+  }
+}
+
+export async function isAdmin(userId: string): Promise<boolean> {
+  try {
+    await connectDB()
+    const profile = await Profile.findById(userId).select('role').lean()
+    return profile?.role === 'admin'
+  } catch {
+    return false
   }
 }
 

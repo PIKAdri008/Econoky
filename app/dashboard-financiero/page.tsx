@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { PiggyBank, Wallet, TrendingUp, ShieldCheck } from 'lucide-react'
+import { useMemo, useState, useEffect } from 'react'
+import { PiggyBank, Wallet, TrendingUp, ShieldCheck, Save } from 'lucide-react'
 
 const numberFormatter = new Intl.NumberFormat('es-ES', {
   style: 'currency',
@@ -19,16 +19,74 @@ type FinancialInputs = {
 }
 
 const INITIAL_STATE: FinancialInputs = {
-  ingresos: 3200,
-  gastos: 2100,
-  ahorro: 500,
-  inversion: 300,
-  deuda: 15000,
-  patrimonio: 42000,
+  ingresos: 0,
+  gastos: 0,
+  ahorro: 0,
+  inversion: 0,
+  deuda: 0,
+  patrimonio: 0,
 }
 
 export default function DashboardFinancieroPage() {
   const [inputs, setInputs] = useState<FinancialInputs>(INITIAL_STATE)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
+
+  useEffect(() => {
+    loadDashboard()
+  }, [])
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/financial-dashboard')
+      const data = await response.json()
+      
+      if (response.ok && data.dashboard) {
+        setInputs(data.dashboard)
+      }
+    } catch (error) {
+      console.error('Error loading dashboard:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const saveDashboard = async () => {
+    try {
+      setSaving(true)
+      setSaveMessage('')
+      const response = await fetch('/api/financial-dashboard', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(inputs),
+      })
+
+      if (response.ok) {
+        setSaveMessage('Datos guardados correctamente')
+        setTimeout(() => setSaveMessage(''), 3000)
+      } else {
+        setSaveMessage('Error al guardar los datos')
+      }
+    } catch (error) {
+      setSaveMessage('Error al guardar los datos')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!loading) {
+        saveDashboard()
+      }
+    }, 2000) // Auto-guardar después de 2 segundos de inactividad
+
+    return () => clearTimeout(timer)
+  }, [inputs, loading])
 
   const derivedData = useMemo(() => {
     const flujoCaja = inputs.ingresos - inputs.gastos
@@ -55,6 +113,19 @@ export default function DashboardFinancieroPage() {
       ...prev,
       [field]: isNaN(numericValue) ? 0 : numericValue,
     }))
+    setSaveMessage('')
+  }
+
+  if (loading) {
+    return (
+      <section className="min-h-screen bg-gradient-to-b from-[#eef4ff] via-white to-white py-12 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white p-8 rounded-lg shadow-md text-center">
+            <p className="text-gray-600">Cargando datos...</p>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   const progressClass = (value: number) => {
@@ -109,10 +180,28 @@ export default function DashboardFinancieroPage() {
           />
         </div>
 
+        {saveMessage && (
+          <div className={`bg-white rounded-3xl border border-white/60 shadow-glow-primary p-4 flex items-center justify-between ${
+            saveMessage.includes('Error') ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'
+          }`}>
+            <p className={`text-sm ${saveMessage.includes('Error') ? 'text-red-700' : 'text-green-700'}`}>
+              {saveMessage}
+            </p>
+            <button
+              onClick={saveDashboard}
+              disabled={saving}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 text-sm"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? 'Guardando...' : 'Guardar ahora'}
+            </button>
+          </div>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-6 space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Introduce tus datos</h2>
-            <div className="grid md:grid-cols-2 gap-5">
+          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Introduce tus datos</h2>
+            <div className="grid md:grid-cols-2 gap-4 sm:gap-5">
               {(
                 [
                   ['ingresos', 'Ingresos mensuales'],
@@ -124,13 +213,13 @@ export default function DashboardFinancieroPage() {
                 ] as Array<[keyof FinancialInputs, string]>
               ).map(([field, label]) => (
                 <label key={field} className="space-y-2 text-sm font-medium text-gray-700">
-                  <span>{label}</span>
+                  <span className="text-xs sm:text-sm">{label}</span>
                   <input
                     type="number"
                     inputMode="decimal"
-                    value={inputs[field]}
+                    value={inputs[field] || ''}
                     onChange={event => handleChange(field, event.target.value)}
-                    className="w-full rounded-2xl border border-gray-200 bg-white text-gray-900 placeholder-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full rounded-2xl border border-gray-200 bg-white text-gray-900 placeholder-gray-500 px-3 sm:px-4 py-2 sm:py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                     placeholder="0,00"
                   />
                 </label>
@@ -163,11 +252,11 @@ export default function DashboardFinancieroPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-6 space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-4 sm:p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">Pronóstico de liquidez</h3>
-                <p className="text-sm text-gray-500">12 meses proyectados (cifra lineal).</p>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Pronóstico de liquidez</h3>
+                <p className="text-xs sm:text-sm text-gray-500">12 meses proyectados (cifra lineal).</p>
               </div>
               <span className="text-sm font-semibold text-primary-600">
                 {numberFormatter.format(derivedData.flujoCaja)}
@@ -191,8 +280,8 @@ export default function DashboardFinancieroPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-6 space-y-6">
-            <h3 className="text-xl font-semibold text-gray-900">Distribución rápida</h3>
+          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Distribución rápida</h3>
             <div className="flex items-center gap-6">
               <div className="relative w-40 h-40">
                 <svg viewBox="0 0 36 36" className="w-full h-full">

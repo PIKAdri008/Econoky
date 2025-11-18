@@ -9,6 +9,7 @@ export interface IPost {
   user_id: string // ObjectId del perfil como string (no relacional, solo referencia)
   title: string
   content: string
+  image_url?: string // URL de la imagen del post
   likes?: number // Contador de likes (no relacional)
   created_at: Date
   updated_at: Date
@@ -28,6 +29,9 @@ const PostSchema = new Schema<IPost>(
     content: {
       type: String,
       required: true,
+    },
+    image_url: {
+      type: String,
     },
     likes: {
       type: Number,

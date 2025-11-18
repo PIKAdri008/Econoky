@@ -9,6 +9,7 @@ interface PostCardProps {
     id: string
     title: string
     content: string
+    image_url?: string
     likes: number
     liked_by_user: boolean
     created_at: string
@@ -19,6 +20,8 @@ interface PostCardProps {
       avatar_url?: string | null
     }
   }
+  isAdmin?: boolean
+  onDeleteComment?: (commentId: string) => void
 }
 
 interface Comment {
@@ -33,7 +36,7 @@ interface Comment {
   }
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, isAdmin = false, onDeleteComment }: PostCardProps) {
   const router = useRouter()
   const [likes, setLikes] = useState(post.likes || 0)
   const [liked, setLiked] = useState(post.liked_by_user || false)
@@ -113,7 +116,7 @@ export function PostCard({ post }: PostCardProps) {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           {post.profile?.avatar_url ? (
@@ -145,7 +148,17 @@ export function PostCard({ post }: PostCardProps) {
         </span>
       </div>
       
-      <p className="text-gray-700 mb-4 whitespace-pre-wrap">{post.content}</p>
+      <p className="text-gray-700 mb-4 whitespace-pre-wrap text-sm sm:text-base">{post.content}</p>
+      
+      {post.image_url && (
+        <div className="mb-4">
+          <img
+            src={post.image_url}
+            alt="Post image"
+            className="w-full h-auto rounded-lg object-cover max-h-96"
+          />
+        </div>
+      )}
       
       <div className="flex items-center gap-4 pt-4 border-t">
         <button
@@ -197,18 +210,29 @@ export function PostCard({ post }: PostCardProps) {
             <div className="space-y-3">
               {comments.map((comment) => (
                 <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-sm text-gray-900">
-                      {comment.profile?.full_name || comment.profile?.email || 'Usuario'}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {new Date(comment.created_at).toLocaleDateString('es-ES', {
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-gray-900">
+                        {comment.profile?.full_name || comment.profile?.email || 'Usuario'}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(comment.created_at).toLocaleDateString('es-ES', {
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    {isAdmin && onDeleteComment && (
+                      <button
+                        onClick={() => onDeleteComment(comment.id)}
+                        className="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded"
+                        title="Eliminar comentario"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                   <p className="text-gray-700 text-sm">{comment.content}</p>
                 </div>
