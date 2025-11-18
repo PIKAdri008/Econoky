@@ -1,0 +1,302 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+import { PiggyBank, Wallet, TrendingUp, ShieldCheck } from 'lucide-react'
+
+const numberFormatter = new Intl.NumberFormat('es-ES', {
+  style: 'currency',
+  currency: 'EUR',
+  maximumFractionDigits: 2,
+})
+
+type FinancialInputs = {
+  ingresos: number
+  gastos: number
+  ahorro: number
+  inversion: number
+  deuda: number
+  patrimonio: number
+}
+
+const INITIAL_STATE: FinancialInputs = {
+  ingresos: 3200,
+  gastos: 2100,
+  ahorro: 500,
+  inversion: 300,
+  deuda: 15000,
+  patrimonio: 42000,
+}
+
+export default function DashboardFinancieroPage() {
+  const [inputs, setInputs] = useState<FinancialInputs>(INITIAL_STATE)
+
+  const derivedData = useMemo(() => {
+    const flujoCaja = inputs.ingresos - inputs.gastos
+    const ahorroRate = inputs.ingresos ? (inputs.ahorro / inputs.ingresos) * 100 : 0
+    const inversionRate = inputs.ingresos ? (inputs.inversion / inputs.ingresos) * 100 : 0
+    const deudaSobrePatrimonio = inputs.patrimonio
+      ? (inputs.deuda / inputs.patrimonio) * 100
+      : 0
+    const patrimonioNeto =
+      inputs.patrimonio + inputs.ingresos - inputs.gastos + inputs.inversion - inputs.deuda
+
+    return {
+      flujoCaja,
+      ahorroRate: Math.max(0, ahorroRate),
+      inversionRate: Math.max(0, inversionRate),
+      deudaSobrePatrimonio: Math.max(0, deudaSobrePatrimonio),
+      patrimonioNeto,
+    }
+  }, [inputs])
+
+  const handleChange = (field: keyof FinancialInputs, value: string) => {
+    const numericValue = Number(value)
+    setInputs(prev => ({
+      ...prev,
+      [field]: isNaN(numericValue) ? 0 : numericValue,
+    }))
+  }
+
+  const progressClass = (value: number) => {
+    if (value >= 60) return 'from-emerald-400 to-emerald-500'
+    if (value >= 35) return 'from-amber-400 to-amber-500'
+    return 'from-rose-400 to-rose-500'
+  }
+
+  return (
+    <section className="min-h-screen bg-gradient-to-b from-[#eef4ff] via-white to-white py-12 px-4">
+      <div className="max-w-6xl mx-auto space-y-10">
+        <header className="bg-white/80 backdrop-blur rounded-3xl border border-white/60 shadow-glow-primary p-8 space-y-3">
+          <p className="text-sm uppercase tracking-[0.2em] text-primary-500 font-semibold">
+            Finanzas personales
+          </p>
+          <h1 className="text-4xl font-bold text-gray-900">Dashboard financiero interactivo</h1>
+          <p className="text-gray-600 max-w-3xl">
+            Ajusta tus cifras y obtén indicadores visuales al instante. Los campos de entrada cuentan
+            con alto contraste para que puedas editar tus datos sin esfuerzo, tal como en el modelo
+            proporcionado.
+          </p>
+        </header>
+
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <SummaryCard
+            title="Mi patrimonio"
+            value={numberFormatter.format(inputs.patrimonio)}
+            icon={<Wallet className="w-7 h-7" />}
+            accent="from-sky-400 to-sky-500"
+            detail={`Patrimonio neto proyectado: ${numberFormatter.format(derivedData.patrimonioNeto)}`}
+          />
+          <SummaryCard
+            title="Ingresos mensuales"
+            value={numberFormatter.format(inputs.ingresos)}
+            icon={<TrendingUp className="w-7 h-7" />}
+            accent="from-emerald-400 to-emerald-500"
+            detail={`Flujo de caja: ${numberFormatter.format(derivedData.flujoCaja)}`}
+          />
+          <SummaryCard
+            title="Ahorro disponible"
+            value={numberFormatter.format(inputs.ahorro)}
+            icon={<PiggyBank className="w-7 h-7" />}
+            accent="from-violet-400 to-violet-500"
+            detail={`Ahorro sobre ingresos: ${derivedData.ahorroRate.toFixed(1)}%`}
+          />
+          <SummaryCard
+            title="Cobertura"
+            value={numberFormatter.format(inputs.deuda)}
+            icon={<ShieldCheck className="w-7 h-7" />}
+            accent="from-amber-400 to-amber-500"
+            detail={`Deuda / patrimonio: ${derivedData.deudaSobrePatrimonio.toFixed(1)}%`}
+          />
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-6 space-y-6">
+            <h2 className="text-2xl font-semibold text-gray-900">Introduce tus datos</h2>
+            <div className="grid md:grid-cols-2 gap-5">
+              {(
+                [
+                  ['ingresos', 'Ingresos mensuales'],
+                  ['gastos', 'Gastos mensuales'],
+                  ['ahorro', 'Ahorro objetivo'],
+                  ['inversion', 'Inversión mensual'],
+                  ['deuda', 'Deuda pendiente'],
+                  ['patrimonio', 'Patrimonio actual'],
+                ] as Array<[keyof FinancialInputs, string]>
+              ).map(([field, label]) => (
+                <label key={field} className="space-y-2 text-sm font-medium text-gray-700">
+                  <span>{label}</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={inputs[field]}
+                    onChange={event => handleChange(field, event.target.value)}
+                    className="w-full rounded-2xl border border-gray-200 bg-white text-gray-900 placeholder-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="0,00"
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-6 space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Indicadores rápidos</h3>
+              <p className="text-sm text-gray-500">Valores basados en tus entradas actuales.</p>
+            </div>
+
+            <IndicatorBar
+              label="Tasa de ahorro"
+              value={derivedData.ahorroRate}
+              colorClass={progressClass(derivedData.ahorroRate)}
+            />
+            <IndicatorBar
+              label="Inversión sobre ingresos"
+              value={derivedData.inversionRate}
+              colorClass="from-blue-400 to-blue-500"
+            />
+            <IndicatorBar
+              label="Deuda sobre patrimonio"
+              value={derivedData.deudaSobrePatrimonio}
+              colorClass="from-rose-400 to-rose-500"
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">Pronóstico de liquidez</h3>
+                <p className="text-sm text-gray-500">12 meses proyectados (cifra lineal).</p>
+              </div>
+              <span className="text-sm font-semibold text-primary-600">
+                {numberFormatter.format(derivedData.flujoCaja)}
+              </span>
+            </div>
+            <div className="h-56 w-full bg-gradient-to-b from-primary-50 to-white rounded-2xl p-4 flex items-end gap-1">
+              {Array.from({ length: 12 }).map((_, index) => {
+                const multiplier = 0.8 + (index / 15)
+                const value = Math.max(0, derivedData.flujoCaja * multiplier)
+                const height = Math.min(100, Math.abs(value) / 50)
+                return (
+                  <div
+                    key={index}
+                    className={`flex-1 rounded-full transition-all ${
+                      value >= 0 ? 'bg-primary-500/80' : 'bg-rose-400/90'
+                    }`}
+                    style={{ height: `${height}%` }}
+                  />
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-6 space-y-6">
+            <h3 className="text-xl font-semibold text-gray-900">Distribución rápida</h3>
+            <div className="flex items-center gap-6">
+              <div className="relative w-40 h-40">
+                <svg viewBox="0 0 36 36" className="w-full h-full">
+                  <path
+                    className="text-primary-200"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray="100, 100"
+                    d="M18 2.0845
+                      a 15.9155 15.9155 0 0 1 0 31.831
+                      a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className="text-primary-500"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray={`${Math.min(100, derivedData.ahorroRate)}, 100`}
+                    d="M18 2.0845
+                      a 15.9155 15.9155 0 0 1 0 31.831
+                      a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <p className="text-sm text-gray-500">Ahorro</p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {derivedData.ahorroRate.toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3 flex-1">
+                <Legend label="Ahorro" value={inputs.ahorro} color="bg-primary-500" />
+                <Legend label="Inversión" value={inputs.inversion} color="bg-violet-500" />
+                <Legend label="Gastos" value={inputs.gastos} color="bg-rose-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+type SummaryCardProps = {
+  title: string
+  value: string
+  icon: React.ReactNode
+  accent: string
+  detail: string
+}
+
+function SummaryCard({ title, value, icon, accent, detail }: SummaryCardProps) {
+  return (
+    <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{title}</p>
+        <div className={`p-3 rounded-2xl text-white bg-gradient-to-br ${accent}`}>{icon}</div>
+      </div>
+      <p className="text-3xl font-bold text-gray-900">{value}</p>
+      <p className="text-sm text-gray-500">{detail}</p>
+    </div>
+  )
+}
+
+type IndicatorBarProps = {
+  label: string
+  value: number
+  colorClass: string
+}
+
+function IndicatorBar({ label, value, colorClass }: IndicatorBarProps) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm text-gray-600 font-semibold">
+        <span>{label}</span>
+        <span>{value.toFixed(1)}%</span>
+      </div>
+      <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
+        <div
+          className={`h-full bg-gradient-to-r ${colorClass}`}
+          style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+type LegendProps = {
+  label: string
+  value: number
+  color: string
+}
+
+function Legend({ label, value, color }: LegendProps) {
+  return (
+    <div className="flex items-center justify-between text-sm text-gray-600">
+      <div className="flex items-center gap-2">
+        <span className={`w-3 h-3 rounded-full ${color}`} />
+        <span>{label}</span>
+      </div>
+      <span className="font-semibold text-gray-900">{numberFormatter.format(value)}</span>
+    </div>
+  )
+}
+
+
