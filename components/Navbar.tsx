@@ -34,22 +34,25 @@ export function Navbar() {
   }
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-white/40 shadow-glow-primary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           <div className="flex items-center">
-            <Link href={user ? "/dashboard" : "/"} className="text-2xl font-bold text-primary-600">
+            <Link
+              href={user ? '/dashboard' : '/'}
+              className="text-2xl font-bold text-primary-600"
+            >
               Econoky
             </Link>
           </div>
-          
-          <div className="hidden md:flex items-center space-x-8">
+
+          <div className="hidden md:flex items-center space-x-8 text-gray-700">
             {!loading && (
               user ? (
                 <>
                   <Link 
                     href="/dashboard" 
-                    className={`${pathname === '/dashboard' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
+                    className={`${pathname === '/dashboard' ? 'text-primary-600 font-semibold' : 'hover:text-primary-600 transition-colors'}`}
                   >
                     Dashboard
                   </Link>
@@ -60,16 +63,16 @@ export function Navbar() {
                   >
                     <Link 
                       href="/calculadoras" 
-                      className={`${pathname?.startsWith('/calculadoras') ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors flex items-center gap-1`}
+                      className={`${pathname?.startsWith('/calculadoras') ? 'text-primary-600 font-semibold' : 'hover:text-primary-600 transition-colors'} flex items-center gap-1`}
                     >
                       Calculadoras
                       <ChevronDown className="w-4 h-4" />
                     </Link>
                     {calculadorasOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      <div className="absolute top-full left-0 mt-2 w-64 bg-white/95 backdrop-blur border border-white/80 rounded-2xl shadow-glow-violet py-3 z-50">
                         <Link 
                           href="/calculadoras/hipotecas" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors rounded-xl"
                         >
                           Hipotecas
                         </Link>
@@ -153,7 +156,7 @@ export function Navbar() {
                 <>
                   <Link 
                     href="/" 
-                    className={`${pathname === '/' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
+                    className={`${pathname === '/' ? 'text-primary-600 font-semibold' : 'hover:text-primary-600 transition-colors'}`}
                   >
                     Inicio
                   </Link>
@@ -165,7 +168,7 @@ export function Navbar() {
                   </Link>
                   <Link 
                     href="/auth/register" 
-                    className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                    className="cta-button text-sm px-6 py-2 rounded-full"
                   >
                     Registrarse
                   </Link>
