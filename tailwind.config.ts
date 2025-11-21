@@ -10,28 +10,31 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7', // Teal principal
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          50: '#ecfffd',
+          100: '#c9fff9',
+          200: '#94f6ed',
+          300: '#67e7df',
+          400: '#46d6ca', // #46D6CA
+          500: '#4db0f0', // #4DB0F0
+          600: '#5c8de4',
+          700: '#6a78d8',
+          800: '#5a64c3',
+          900: '#26235d', // #26235D
         },
-        brand: {
-          teal: '#0284c7', // Teal vibrante
-          sky: '#7dd3fc', // Azul cielo
-          purple: '#a78bfa', // Púrpura lavanda
-          gradient: 'linear-gradient(to right, #0284c7, #7dd3fc, #a78bfa)',
+        accent: {
+          aqua: '#46D6CA',
+          sky: '#4DB0F0',
+          indigo: '#7A74D6',
         },
         secondary: {
           white: '#FFFFFF',
-          lightGray: '#EAEAEA',
-          darkNavy: '#26235D',
+          light: '#EAEAEA',
+          dark: '#26235D',
         },
+      },
+      boxShadow: {
+        'glow-primary': '0 25px 55px rgba(77, 176, 240, 0.35)',
+        'glow-violet': '0 25px 55px rgba(122, 116, 214, 0.4)',
       },
     },
   },
