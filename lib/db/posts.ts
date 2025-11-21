@@ -19,6 +19,7 @@ export interface PostWithProfile {
   user_id: string
   title: string
   content: string
+  image_url?: string
   likes: number
   liked_by_user: boolean
   created_at: Date
@@ -74,6 +75,7 @@ export async function getPosts(limit: number = 50, currentUserId?: string): Prom
       user_id: post.user_id,
       title: post.title,
       content: post.content,
+      image_url: post.image_url || undefined,
       likes: post.likes || 0,
       liked_by_user: likedPostIds.has(post._id.toString()),
       created_at: post.created_at,
@@ -217,12 +219,14 @@ export async function createPost(data: {
   user_id: string
   title: string
   content: string
+  image_url?: string
 }): Promise<string> {
   await connectDB()
   const post = await Post.create({
     user_id: data.user_id,
     title: data.title,
     content: data.content,
+    image_url: data.image_url,
   })
   
   return post._id.toString()
@@ -243,4 +247,9 @@ export async function updatePost(
 export async function deletePost(postId: string, userId: string): Promise<void> {
   await connectDB()
   await Post.deleteOne({ _id: postId, user_id: userId })
+}
+
+export async function deleteComment(commentId: string): Promise<void> {
+  await connectDB()
+  await Comment.deleteOne({ _id: commentId })
 }

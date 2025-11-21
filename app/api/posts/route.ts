@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
-import { createPost } from '@/lib/db/posts'
+import { createPost, getPosts } from '@/lib/db/posts'
+
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getCurrentUser()
+    const posts = await getPosts(50, user?.id)
+    
+    return NextResponse.json({ posts })
+  } catch (error: any) {
+    console.error('Error obteniendo publicaciones:', error)
+    return NextResponse.json(
+      { error: error.message || 'Error al obtener publicaciones' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +28,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, content } = await request.json()
+    const { title, content, image_url } = await request.json()
 
     if (!title || !content) {
       return NextResponse.json(
@@ -26,6 +41,7 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       title,
       content,
+      image_url,
     })
 
     return NextResponse.json({ id: postId, success: true })

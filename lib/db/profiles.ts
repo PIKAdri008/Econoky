@@ -11,6 +11,7 @@ export interface Profile {
   subscription_status: 'free' | 'pro'
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
+  role?: 'user' | 'admin'
   stats?: {
     posts_count: number
     followers_count: number
@@ -36,6 +37,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     subscription_status: profile.subscription_status,
     stripe_customer_id: profile.stripe_customer_id || null,
     stripe_subscription_id: profile.stripe_subscription_id || null,
+    role: profile.role || 'user',
     stats: profile.stats || {
       posts_count: 0,
       followers_count: 0,
@@ -81,6 +83,7 @@ export async function updateProfile(
     subscription_status: 'free' | 'pro'
     stripe_customer_id: string
     stripe_subscription_id: string
+    role: 'user' | 'admin'
     stats: {
       posts_count: number
       followers_count: number
@@ -90,4 +93,34 @@ export async function updateProfile(
 ): Promise<void> {
   await connectDB()
   await Profile.findByIdAndUpdate(userId, { $set: data })
+}
+
+export async function getAllUsers(): Promise<Profile[]> {
+  await connectDB()
+  const profiles = await Profile.find().select('-password').lean()
+  
+  return profiles.map((profile: any) => ({
+    id: profile._id.toString(),
+    email: profile.email,
+    full_name: profile.full_name || null,
+    avatar_url: profile.avatar_url || null,
+    bio: profile.bio || null,
+    balance: profile.balance,
+    subscription_status: profile.subscription_status,
+    stripe_customer_id: profile.stripe_customer_id || null,
+    stripe_subscription_id: profile.stripe_subscription_id || null,
+    role: profile.role || 'user',
+    stats: profile.stats || {
+      posts_count: 0,
+      followers_count: 0,
+      following_count: 0,
+    },
+    created_at: profile.created_at,
+    updated_at: profile.updated_at,
+  }))
+}
+
+export async function deleteUser(userId: string): Promise<void> {
+  await connectDB()
+  await Profile.deleteOne({ _id: userId })
 }

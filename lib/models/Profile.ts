@@ -15,6 +15,7 @@ export interface IProfile {
   subscription_status: 'free' | 'pro'
   stripe_customer_id?: string
   stripe_subscription_id?: string
+  role?: 'user' | 'admin' // Rol del usuario
   // Estadísticas embebidas (no relacional)
   stats?: {
     posts_count: number
@@ -64,6 +65,12 @@ const ProfileSchema = new Schema<IProfile>(
     },
     stripe_subscription_id: {
       type: String,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+      index: true,
     },
     stats: {
       posts_count: {

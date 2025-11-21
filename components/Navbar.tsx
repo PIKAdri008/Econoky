@@ -11,6 +11,7 @@ export function Navbar() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [calculadorasOpen, setCalculadorasOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     // Verificar si hay un usuario autenticado
@@ -19,8 +20,10 @@ export function Navbar() {
       .then(data => {
         if (data.user) {
           setUser(data.user)
+          setIsAdmin(data.user.role === 'admin')
         } else {
           setUser(null)
+          setIsAdmin(false)
         }
       })
       .finally(() => setLoading(false))
@@ -152,6 +155,26 @@ export function Navbar() {
                     Test
                   </Link>
                   <Link 
+                    href="/community" 
+                    className={`${pathname === '/community' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
+                  >
+                    Comunidad
+                  </Link>
+                  <Link 
+                    href="/mensajes" 
+                    className={`${pathname === '/mensajes' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
+                  >
+                    Mensajes
+                  </Link>
+                  {isAdmin && (
+                    <Link 
+                      href="/admin" 
+                      className={`${pathname === '/admin' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
+                    >
+                      Admin
+                    </Link>
+                  )}
+                  <Link 
                     href="/profile" 
                     className={`${pathname === '/profile' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
                   >
@@ -159,7 +182,7 @@ export function Navbar() {
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="px-4 py-2 rounded-xl text-gray-700 border border-transparent transition-colors duration-300 hover:bg-red-500 hover:text-white"
+                    className="px-3 sm:px-4 py-2 rounded-xl text-gray-700 border border-transparent transition-colors duration-300 hover:bg-red-500 hover:text-white text-sm sm:text-base"
                   >
                     Cerrar sesión
                   </button>
