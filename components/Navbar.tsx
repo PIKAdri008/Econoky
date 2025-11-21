@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import logo from "../src/assets/ECONOKY_Imagotipo_04_1350x350px.jpg"
 
 export function Navbar() {
   const pathname = usePathname()
@@ -14,7 +16,6 @@ export function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    // Verificar si hay un usuario autenticado
     fetch('/api/auth/me')
       .then(res => res.json())
       .then(data => {
@@ -43,9 +44,13 @@ export function Navbar() {
           <div className="flex items-center">
             <Link
               href={user ? '/dashboard' : '/'}
-              className="text-2xl font-black bg-gradient-to-r from-accent-aqua via-accent-sky to-accent-indigo bg-clip-text text-transparent drop-shadow-sm"
+              className="flex items-center"
             >
-              Econoky
+              <Image
+                src={logo}
+                alt="Econoky Logo"
+                className="h-8 w-28 object-contain"
+              />
             </Link>
           </div>
 
@@ -216,3 +221,4 @@ export function Navbar() {
     </nav>
   )
 }
+
