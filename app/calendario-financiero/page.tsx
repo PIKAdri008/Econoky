@@ -1,9 +1,7 @@
-'use client'
+ 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Calendar as CalendarIcon, Loader2, RefreshCcw } from 'lucide-react'
-
-const API_BASE = 'https://fincalapi.com'
 
 const CALENDARS = {
   impuestos: {
@@ -25,12 +23,62 @@ const CALENDARS = {
 
 type CalendarType = keyof typeof CALENDARS
 
-type Holiday = {
-  name: string
+type FinCalHolidayResponse = {
   date: string
-  status?: string
-  closing_time?: string | null
+  status: string
+  close_time?: string | null
+}
+
+type Holiday = {
+  date: string
+  status: string
+  name: string
   description?: string
+  closing_time?: string | null
+}
+
+type FinancialSummary = {
+  dayStatus?: {
+    status: string
+    close_time?: string | null
+    is_holiday?: boolean
+    is_weekend?: boolean
+  }
+  isEarlyClose?: {
+    is_early_close: boolean
+    close_time?: string | null
+  }
+  isHoliday?: {
+    is_holiday: boolean
+  }
+  nextBusinessDay?: {
+    next_business_day: string
+  }
+  previousBusinessDay?: {
+    previous_business_day: string
+  }
+  nextSettlementDate?: {
+    next_settlement_date: string
+  }
+  settlementDate?: {
+    settlement_date: string
+  }
+  isValidSettlementDate?: {
+    is_valid_settlement_date: boolean
+  }
+  nextNHolidays?: {
+    holidays: string[]
+  }
+  tplus?: number
+}
+
+const SUMMARY_STATUS_LABELS: Record<string, string> = {
+  open: 'Día operativo',
+  closed: 'Cierre completo',
+  full_close: 'Cierre total',
+  early_close: 'Cierre temprano',
+  weekday: 'Día hábil',
+  weekend: 'Fin de semana',
 }
 
 const formatCurrencyDate = (date: Date) =>
@@ -38,27 +86,40 @@ const formatCurrencyDate = (date: Date) =>
 
 const formatISODate = (date: Date) => date.toISOString().split('T')[0]
 
+const getHolidayLabel = (status: string) =>
+  SUMMARY_STATUS_LABELS[status] ||
+  status
+    .split('_')
+    .map(word => (word ? word[0].toUpperCase() + word.slice(1) : ''))
+    .join(' ')
+
+const formatSummaryBoolean = (value?: boolean) =>
+  value === undefined ? '—' : value ? 'Sí' : 'No'
+
 export default function CalendarioFinancieroPage() {
   const [calendarType, setCalendarType] = useState<CalendarType>('impuestos')
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const [events, setEvents] = useState<Holiday[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [summary, setSummary] = useState<FinancialSummary | null>(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [summaryError, setSummaryError] = useState<string | null>(null)
 
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
   const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
 
   const fetchEvents = useCallback(async () => {
     const { apiCalendar } = CALENDARS[calendarType]
-    const start = formatISODate(monthStart)
-    const end = formatISODate(monthEnd)
+    const startDate = formatISODate(monthStart)
+    const endDate = formatISODate(monthEnd)
 
     setLoading(true)
     setError(null)
 
     try {
       const response = await fetch(
-        `${API_BASE}/holidays/range?calendar=${apiCalendar}&start=${start}&end=${end}`
+        `/api/financial-calendar/holidays?calendar=${apiCalendar}&start_date=${startDate}&end_date=${endDate}`
       )
 
       if (!response.ok) {
@@ -66,10 +127,33 @@ export default function CalendarioFinancieroPage() {
       }
 
       const data = await response.json()
-      setEvents(Array.isArray(data?.holidays) ? data.holidays : [])
+      const rawEvents = Array.isArray(data?.holidays) ? data.holidays : []
+      const normalized = rawEvents.map((holiday: FinCalHolidayResponse): Holiday => {
+        const descriptionParts: string[] = []
+        if (holiday.status === 'full_close') {
+          descriptionParts.push('Cierre total')
+        } else if (holiday.status === 'early_close') {
+          descriptionParts.push('Cierre anticipado')
+        } else {
+          descriptionParts.push('Día hábil')
+        }
+        if (holiday.close_time) {
+          descriptionParts.push(`Cierra a las ${holiday.close_time}`)
+        }
+
+        return {
+          date: holiday.date,
+          status: holiday.status,
+          name: getHolidayLabel(holiday.status),
+          description: descriptionParts.join(' • '),
+          closing_time: holiday.close_time ?? null,
+        }
+      })
+      setEvents(normalized)
     } catch (err) {
       console.error(err)
       setError('No pudimos actualizar el calendario financiero. Inténtalo nuevamente.')
+      setEvents([])
     } finally {
       setLoading(false)
     }
@@ -78,6 +162,37 @@ export default function CalendarioFinancieroPage() {
   useEffect(() => {
     fetchEvents()
   }, [fetchEvents])
+
+  const fetchSummary = useCallback(async () => {
+    const { apiCalendar } = CALENDARS[calendarType]
+    const isoDate = formatISODate(currentDate)
+
+    setSummaryLoading(true)
+    setSummaryError(null)
+
+    try {
+      const response = await fetch(
+        `/api/financial-calendar/summary?calendar=${apiCalendar}&date=${isoDate}`
+      )
+
+      if (!response.ok) {
+        throw new Error('Resumen no disponible')
+      }
+
+      const data = await response.json()
+      setSummary(data.summary || null)
+    } catch (err) {
+      console.error(err)
+      setSummary(null)
+      setSummaryError('No pudimos cargar el resumen del día.')
+    } finally {
+      setSummaryLoading(false)
+    }
+  }, [calendarType, currentDate])
+
+  useEffect(() => {
+    fetchSummary()
+  }, [fetchSummary])
 
   const daysMatrix = useMemo(() => {
     const days: Array<{ date: Date; inMonth: boolean }> = []
@@ -121,6 +236,44 @@ export default function CalendarioFinancieroPage() {
       return newDate
     })
   }
+
+  const dayStatusLabel = summary?.dayStatus?.status
+    ? getHolidayLabel(summary.dayStatus.status)
+    : summaryLoading
+      ? 'Cargando...'
+      : 'No disponible'
+
+  const summaryCards = [
+    {
+      title: 'Estado del día',
+      value: dayStatusLabel,
+      detail: summary?.dayStatus?.close_time
+        ? `Cierra a las ${summary.dayStatus.close_time}`
+        : summary?.dayStatus?.is_holiday
+          ? 'Feriado'
+          : 'Operativo normal',
+    },
+    {
+      title: 'Próximo día hábil',
+      value: summary?.nextBusinessDay?.next_business_day || '—',
+      detail: 'Siguiente jornada operativa',
+    },
+    {
+      title: 'Próxima liquidación',
+      value: summary?.settlementDate?.settlement_date || '—',
+      detail: `T+${summary?.tplus ?? 2}`,
+    },
+    {
+      title: '¿Es feriado?',
+      value: summaryLoading
+        ? 'Cargando...'
+        : formatSummaryBoolean(summary?.isHoliday?.is_holiday),
+      detail: summary?.isHoliday?.is_holiday ? 'Mercado cerrado' : 'Mercado abierto',
+      accent: summary?.isHoliday?.is_holiday ? 'text-rose-600' : 'text-emerald-600',
+    },
+  ]
+
+  const upcomingHolidays = summary?.nextNHolidays?.holidays || []
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-[#eef4ff] to-white py-12 px-4">
@@ -255,6 +408,60 @@ export default function CalendarioFinancieroPage() {
                   <>Eventos actualizados automáticamente cada vez que cambias de mes o modo.</>
                 )}
               </div>
+            </div>
+            <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.3em] text-primary-500 font-semibold">Resumen del día</p>
+                  <p className="text-gray-500 text-sm">Información actualizada para {formatCurrencyDate(currentDate)}</p>
+                </div>
+                {summaryLoading && <Loader2 className="w-5 h-5 text-primary-500 animate-spin" />}
+              </div>
+
+              {summaryError ? (
+                <p className="px-6 py-4 text-sm text-red-500">{summaryError}</p>
+              ) : (
+                <div className="px-6 pb-6 pt-4 space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {summaryCards.map(card => (
+                      <div
+                        key={card.title}
+                        className="rounded-2xl bg-gray-50 p-4 border border-gray-100 shadow-sm"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 mb-2">
+                          {card.title}
+                        </p>
+                        <p className={`text-lg font-semibold ${card.accent || 'text-gray-900'}`}>
+                          {card.value}
+                        </p>
+                        {card.detail && (
+                          <p className="text-sm text-gray-500 mt-1">{card.detail}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                    <div className="border-t border-gray-100 pt-4">
+                      <p className="text-sm font-semibold text-gray-900 mb-2">Próximos días festivos</p>
+                      {summaryLoading ? (
+                        <p className="text-sm text-gray-500">Cargando próximos feriados...</p>
+                      ) : upcomingHolidays.length > 0 ? (
+                        <ul className="space-y-1 text-sm text-gray-600">
+                          {upcomingHolidays.map(date => (
+                            <li key={date}>
+                              {new Date(date).toLocaleDateString('es-ES', {
+                                weekday: 'short',
+                                day: 'numeric',
+                                month: 'long',
+                              })}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-gray-500">Sin feriados cercanos registrados.</p>
+                      )}
+                    </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -148,7 +148,7 @@ export function PostCard({ post, isAdmin = false, onDeleteComment }: PostCardPro
         </span>
       </div>
       
-      <p className="text-gray-700 mb-4 whitespace-pre-wrap text-sm sm:text-base">{post.content}</p>
+      <p className="text-gray-700 mb-4 whitespace-pre-line break-words text-sm sm:text-base">{post.content}</p>
       
       {post.image_url && (
         <div className="mb-4">

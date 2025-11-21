@@ -31,6 +31,13 @@ interface Message {
   }
 }
 
+interface ProfileSummary {
+  id: string
+  full_name: string | null
+  email: string | null
+  avatar_url?: string | null
+}
+
 export function MessagesPanel() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
@@ -40,6 +47,11 @@ export function MessagesPanel() {
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [searchResults, setSearchResults] = useState<ProfileSummary[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [selectedProfile, setSelectedProfile] = useState<ProfileSummary | null>(null)
 
   useEffect(() => {
     loadConversations()
@@ -47,11 +59,63 @@ export function MessagesPanel() {
   }, [])
 
   useEffect(() => {
+    if (searchTerm.trim().length < 2) {
+      setSearchResults([])
+      setSearchError(null)
+      setSearchLoading(false)
+      return
+    }
+
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      try {
+        setSearchLoading(true)
+        setSearchError(null)
+
+        const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          throw new Error('No se pudieron buscar usuarios')
+        }
+
+        const data = await response.json()
+        setSearchResults(data.users || [])
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error buscando usuarios:', error)
+          setSearchError(error.message || 'No se pudieron buscar usuarios')
+        }
+      } finally {
+        setSearchLoading(false)
+      }
+    }, 400)
+
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [searchTerm])
+
+  useEffect(() => {
     if (selectedUser) {
       loadMessages(selectedUser)
       markAsRead(selectedUser)
     }
   }, [selectedUser])
+
+  useEffect(() => {
+    if (!selectedUser) {
+      setSelectedProfile(null)
+      return
+    }
+
+    const conv = conversations.find(c => c.user_id === selectedUser)
+    if (conv?.profile) {
+      setSelectedProfile(conv.profile)
+    }
+  }, [selectedUser, conversations])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -113,6 +177,22 @@ export function MessagesPanel() {
     }
   }
 
+  const handleConversationSelect = (
+    userId: string,
+    profile?: ProfileSummary | null,
+    clearSearch = false
+  ) => {
+    setSelectedUser(userId)
+    setSelectedProfile(profile || null)
+    if (clearSearch) {
+      setSearchTerm('')
+      setSearchResults([])
+    }
+  }
+
+  const activeConversation = conversations.find(conv => conv.user_id === selectedUser)
+  const activeProfile = selectedProfile || activeConversation?.profile
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!messageText.trim() || !selectedUser) return
@@ -160,6 +240,61 @@ export function MessagesPanel() {
               <MessageCircle className="w-5 h-5" />
               Conversaciones
             </h2>
+            <p className="text-xs text-primary-100 mt-1">
+              Busca por nombre o correo para iniciar un mensaje privado.
+            </p>
+          </div>
+          <div className="px-4 py-3 border-b border-gray-100 bg-white">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar usuarios..."
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+            {searchTerm.trim().length >= 2 && (
+              <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                {searchLoading && (
+                  <p className="text-xs text-primary-500">Buscando usuarios...</p>
+                )}
+                {searchError && (
+                  <p className="text-xs text-red-500">{searchError}</p>
+                )}
+                {!searchLoading && !searchError && searchResults.length === 0 && (
+                  <p className="text-xs text-gray-500">No se encontraron usuarios.</p>
+                )}
+                {!searchLoading &&
+                  !searchError &&
+                  searchResults.map(user => (
+                    <button
+                      key={`search-${user.id}`}
+                      type="button"
+                      onClick={() => handleConversationSelect(user.id, user, true)}
+                      className={`w-full rounded-2xl px-3 py-2 text-left transition-colors flex items-center gap-3 ${
+                        selectedUser === user.id ? 'bg-primary-50' : 'bg-gray-50'
+                      }`}
+                    >
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.full_name || 'Usuario'}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white">
+                          <User className="w-4 h-4" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-gray-900 truncate">
+                          {user.full_name || user.email || 'Usuario'}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">{user.email || 'Sin correo'}</p>
+                      </div>
+                    </button>
+                  ))}
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
@@ -170,7 +305,7 @@ export function MessagesPanel() {
               conversations.map((conv) => (
                 <button
                   key={conv.user_id}
-                  onClick={() => setSelectedUser(conv.user_id)}
+                  onClick={() => handleConversationSelect(conv.user_id, conv.profile || null)}
                   className={`w-full p-4 text-left border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                     selectedUser === conv.user_id ? 'bg-primary-50' : ''
                   }`}
@@ -211,10 +346,11 @@ export function MessagesPanel() {
             <>
               <div className="bg-gray-50 p-4 border-b border-gray-200">
                 <p className="font-semibold text-gray-900">
-                  {conversations.find(c => c.user_id === selectedUser)?.profile?.full_name ||
-                   conversations.find(c => c.user_id === selectedUser)?.profile?.email ||
-                   'Usuario'}
+                  {activeProfile?.full_name || activeProfile?.email || 'Usuario'}
                 </p>
+                {activeProfile?.email && (
+                  <p className="text-xs text-gray-500">{activeProfile.email}</p>
+                )}
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map((message) => {

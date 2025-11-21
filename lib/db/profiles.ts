@@ -1,5 +1,6 @@
 import Profile, { IProfile } from '@/lib/models/Profile'
 import connectDB from '@/lib/mongodb'
+import mongoose from 'mongoose'
 
 export interface Profile {
   id: string
@@ -95,6 +96,9 @@ export async function updateProfile(
   await Profile.findByIdAndUpdate(userId, { $set: data })
 }
 
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 export async function getAllUsers(): Promise<Profile[]> {
   await connectDB()
   const profiles = await Profile.find().select('-password').lean()
@@ -123,4 +127,54 @@ export async function getAllUsers(): Promise<Profile[]> {
 export async function deleteUser(userId: string): Promise<void> {
   await connectDB()
   await Profile.deleteOne({ _id: userId })
+}
+
+export async function searchProfiles(
+  query: string,
+  limit = 10,
+  excludeUserId?: string
+): Promise<Profile[]> {
+  const trimmed = query.trim()
+  if (!trimmed) {
+    return []
+  }
+
+  await connectDB()
+
+  const regex = new RegExp(escapeRegExp(trimmed), 'i')
+  const filters: any = {
+    $or: [
+      { full_name: { $regex: regex } },
+      { email: { $regex: regex } },
+    ],
+  }
+
+  if (excludeUserId && mongoose.Types.ObjectId.isValid(excludeUserId)) {
+    filters._id = { $ne: new mongoose.Types.ObjectId(excludeUserId) }
+  }
+
+  const profiles = await Profile.find(filters)
+    .select('-password')
+    .limit(limit)
+    .lean()
+
+  return profiles.map((profile: any) => ({
+    id: profile._id.toString(),
+    email: profile.email,
+    full_name: profile.full_name || null,
+    avatar_url: profile.avatar_url || null,
+    bio: profile.bio || null,
+    balance: profile.balance,
+    subscription_status: profile.subscription_status,
+    stripe_customer_id: profile.stripe_customer_id || null,
+    stripe_subscription_id: profile.stripe_subscription_id || null,
+    role: profile.role || 'user',
+    stats: profile.stats || {
+      posts_count: 0,
+      followers_count: 0,
+      following_count: 0,
+    },
+    created_at: profile.created_at,
+    updated_at: profile.updated_at,
+  }))
 }
