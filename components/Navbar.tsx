@@ -138,6 +138,12 @@ export function Navbar() {
                         >
                           Jubilación y Pensión
                         </Link>
+                        <Link 
+                          href="/calculadoras/ipci" 
+                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                        >
+                          IPCI
+                        </Link>
                       </div>
                     )}
                   </div>

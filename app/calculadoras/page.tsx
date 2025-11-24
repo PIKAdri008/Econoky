@@ -7,7 +7,8 @@ import {
   Building2, 
   Briefcase,
   Scale,
-  Clock
+  Clock,
+  BarChart3
 } from 'lucide-react'
 
 const calculadoras = [
@@ -82,6 +83,15 @@ const calculadoras = [
     color: 'text-orange-500',
     bgColor: 'bg-orange-50',
     href: '/calculadoras/jubilacion-pension'
+  },
+  {
+    id: 'ipci',
+    title: 'Calculadora de IPCI',
+    description: 'Calcula el Índice de Precios al Consumo Individual comparando precios entre años.',
+    icon: BarChart3,
+    color: 'text-green-500',
+    bgColor: 'bg-green-50',
+    href: '/calculadoras/ipci'
   }
 ]
 
