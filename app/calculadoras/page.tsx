@@ -112,7 +112,13 @@ export default function CalculadorasPage() {
                 href={calc.href}
                 className="group"
               >
-                <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-primary-600 h-full flex flex-col">
+                <div
+                  className={`bg-white rounded-lg p-6 hover:shadow-lg transition-all duration-300 h-full flex flex-col border 
+                    ${calc.id === 'ipci' 
+                      ? 'border-2 border-yellow-400 shadow-glow-primary' 
+                      : 'border-gray-200 hover:border-primary-600'
+                    }`}
+                >
                   <div className={`${calc.bgColor} w-16 h-16 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     <Icon className={`${calc.color} w-8 h-8`} />
                   </div>

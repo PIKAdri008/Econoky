@@ -16,6 +16,8 @@ export interface IProfile {
   stripe_customer_id?: string
   stripe_subscription_id?: string
   role?: 'user' | 'admin' // Rol del usuario
+  is_verified?: boolean
+  verification_token?: string | null
   // Estadísticas embebidas (no relacional)
   stats?: {
     posts_count: number
@@ -58,6 +60,15 @@ const ProfileSchema = new Schema<IProfile>(
       type: String,
       enum: ['free', 'pro'],
       default: 'free',
+      index: true,
+    },
+    is_verified: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    verification_token: {
+      type: String,
       index: true,
     },
     stripe_customer_id: {

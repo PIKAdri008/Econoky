@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Send, MessageCircle, User } from 'lucide-react'
+import { Send, MessageCircle, User, CheckCheck } from 'lucide-react'
 
 interface Conversation {
   user_id: string
@@ -368,14 +368,24 @@ export function MessagesPanel() {
                         }`}
                       >
                         <p className="text-sm">{message.content}</p>
-                        <p className={`text-xs mt-1 ${
-                          isOwn ? 'text-primary-100' : 'text-gray-500'
-                        }`}>
-                          {new Date(message.created_at).toLocaleTimeString('es-ES', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </p>
+                        <div className="mt-1 flex items-center gap-1 justify-end">
+                          <p className={`text-xs ${
+                            isOwn ? 'text-primary-100' : 'text-gray-500'
+                          }`}>
+                            {new Date(message.created_at).toLocaleTimeString('es-ES', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                          {isOwn && (
+                            <CheckCheck
+                              className={`w-3.5 h-3.5 ${
+                                message.read ? 'text-sky-200' : 'text-primary-200/60'
+                              }`}
+                              aria-label={message.read ? 'Mensaje visto' : 'Enviado'}
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
                   )

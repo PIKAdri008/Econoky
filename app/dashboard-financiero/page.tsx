@@ -32,9 +32,13 @@ export default function DashboardFinancieroPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+  const [rates, setRates] = useState<Record<string, number> | null>(null)
+  const [ratesLoading, setRatesLoading] = useState(false)
+  const [ratesError, setRatesError] = useState<string | null>(null)
 
   useEffect(() => {
     loadDashboard()
+    loadRates()
   }, [])
 
   const loadDashboard = async () => {
@@ -50,6 +54,26 @@ export default function DashboardFinancieroPage() {
       console.error('Error loading dashboard:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadRates = async () => {
+    try {
+      setRatesLoading(true)
+      setRatesError(null)
+      const res = await fetch('https://api.frankfurter.app/latest?base=EUR&symbols=USD,GBP,CHF,JPY')
+      const data = await res.json()
+
+      if (!res.ok || !data.rates) {
+        throw new Error('No se pudieron cargar las divisas')
+      }
+
+      setRates(data.rates)
+    } catch (error: any) {
+      console.error('Error cargando divisas:', error)
+      setRatesError(error.message || 'No se pudieron cargar las divisas')
+    } finally {
+      setRatesLoading(false)
     }
   }
 
@@ -319,6 +343,45 @@ export default function DashboardFinancieroPage() {
                 <Legend label="Gastos" value={inputs.gastos} color="bg-rose-400" />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Divisas principales */}
+        <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-4 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Divisas principales</h3>
+              <p className="text-xs sm:text-sm text-gray-500">
+                Tipos de cambio frente al EUR (fuente: Frankfurter API).
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={loadRates}
+              className="text-xs px-3 py-1.5 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50"
+              disabled={ratesLoading}
+            >
+              {ratesLoading ? 'Actualizando...' : 'Actualizar'}
+            </button>
+          </div>
+
+          {ratesError && (
+            <p className="text-xs text-red-600">{ratesError}</p>
+          )}
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
+            {['USD', 'GBP', 'CHF', 'JPY'].map(code => (
+              <div
+                key={code}
+                className="rounded-2xl border border-gray-100 bg-gray-50 px-3 py-2 flex flex-col"
+              >
+                <span className="text-xs font-semibold text-gray-500">{code}</span>
+                <span className="text-lg font-bold text-gray-900">
+                  {rates ? rates[code]?.toFixed(4) : '—'}
+                </span>
+                <span className="text-[10px] text-gray-500 mt-0.5">1 EUR = {code}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
