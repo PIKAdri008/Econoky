@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, Menu, X } from 'lucide-react'
 import logo from "../src/assets/ECONOKY_Imagotipo_04_1350x350px.jpg"
 
@@ -12,9 +12,10 @@ export function Navbar() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [calculadorasOpen, setCalculadorasOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const menuTimeout = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -29,6 +30,12 @@ export function Navbar() {
         }
       })
       .finally(() => setLoading(false))
+
+    return () => {
+      if (menuTimeout.current) {
+        clearTimeout(menuTimeout.current)
+      }
+    }
   }, [pathname])
 
   const handleLogout = async () => {
@@ -56,143 +63,102 @@ export function Navbar() {
           </div>
 
           {/* Navegación escritorio */}
-          <div className="hidden md:flex items-center space-x-8 text-gray-700">
+          <div className="hidden md:flex items-center space-x-4 text-gray-700">
             {!loading && (
               user ? (
                 <>
-                  <Link 
-                    href="/dashboard" 
-                    className={`${pathname === '/dashboard' ? 'text-primary-600 font-semibold' : 'hover:text-primary-600 transition-colors'}`}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link 
-                    href="/dashboard-financiero" 
-                    className={`${pathname === '/dashboard-financiero' ? 'text-primary-600 font-semibold' : 'hover:text-primary-600 transition-colors'}`}
-                  >
-                    Panel financiero
-                  </Link>
-                  <Link 
-                    href="/calendario-financiero" 
-                    className={`${pathname === '/calendario-financiero' ? 'text-primary-600 font-semibold' : 'hover:text-primary-600 transition-colors'}`}
-                  >
-                    Calendario
-                  </Link>
                   <div 
                     className="relative"
-                    onMouseEnter={() => setCalculadorasOpen(true)}
-                    onMouseLeave={() => setCalculadorasOpen(false)}
+                    onMouseEnter={() => {
+                      if (menuTimeout.current) clearTimeout(menuTimeout.current)
+                      setMenuOpen(true)
+                    }}
+                    onMouseLeave={() => {
+                      if (menuTimeout.current) clearTimeout(menuTimeout.current)
+                      menuTimeout.current = setTimeout(() => setMenuOpen(false), 150)
+                    }}
                   >
-                    <Link 
-                      href="/calculadoras" 
-                      className={`${pathname?.startsWith('/calculadoras') ? 'text-primary-600 font-semibold' : 'hover:text-primary-600 transition-colors'} flex items-center gap-1`}
+                    <button
+                      className={`${pathname !== '/' && pathname !== '/auth/login' && pathname !== '/auth/register' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors flex items-center gap-1`}
                     >
-                      Calculadoras
+                      Menú
                       <ChevronDown className="w-4 h-4" />
-                    </Link>
-                    {calculadorasOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-64 bg-white/95 backdrop-blur border border-white/80 rounded-2xl shadow-glow-violet py-3 z-50">
+                    </button>
+                    {menuOpen && (
+                      <div className="absolute top-full right-0 mt-2 w-72 bg-white/95 backdrop-blur border border-white/80 rounded-2xl shadow-glow-violet py-3 z-50">
                         <Link 
-                          href="/calculadoras/hipotecas" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors rounded-xl"
+                          href="/dashboard" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors rounded-xl ${pathname === '/dashboard' ? 'bg-primary-50 text-primary-600' : ''}`}
                         >
-                          Hipotecas
+                          Dashboard
                         </Link>
                         <Link 
-                          href="/calculadoras/rentabilidad" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                          href="/dashboard-financiero" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname === '/dashboard-financiero' ? 'bg-primary-50 text-primary-600' : ''}`}
                         >
-                          Rentabilidad
+                          Panel financiero
                         </Link>
                         <Link 
-                          href="/calculadoras/libertad-financiera" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                          href="/calendario-financiero" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname === '/calendario-financiero' ? 'bg-primary-50 text-primary-600' : ''}`}
                         >
-                          Libertad Financiera
+                          Calendario
+                        </Link>
+                        <div className="border-t border-gray-200 my-2" />
+                        <Link 
+                          href="/calculadoras" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname?.startsWith('/calculadoras') ? 'bg-primary-50 text-primary-600' : ''}`}
+                        >
+                          Calculadoras
+                        </Link>
+                        <div className="border-t border-gray-200 my-2" />
+                        <Link 
+                          href="/plans" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname === '/plans' ? 'bg-primary-50 text-primary-600' : ''}`}
+                        >
+                          Planes
                         </Link>
                         <Link 
-                          href="/calculadoras/interes-compuesto" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                          href="/blog" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname === '/blog' ? 'bg-primary-50 text-primary-600' : ''}`}
                         >
-                          Interés Compuesto
+                          Blog
                         </Link>
                         <Link 
-                          href="/calculadoras/ratio-productividad" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                          href="/test" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname === '/test' ? 'bg-primary-50 text-primary-600' : ''}`}
                         >
-                          Ratio de Productividad
+                          Test
                         </Link>
                         <Link 
-                          href="/calculadoras/inversion-inmobiliaria" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                          href="/community" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname === '/community' ? 'bg-primary-50 text-primary-600' : ''}`}
                         >
-                          Inversión Inmobiliaria
+                          Comunidad
                         </Link>
                         <Link 
-                          href="/calculadoras/reparto-herencia" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                          href="/mensajes" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname === '/mensajes' ? 'bg-primary-50 text-primary-600' : ''}`}
                         >
-                          Reparto de Herencia
+                          Mensajes
                         </Link>
+                        {isAdmin && (
+                          <Link 
+                            href="/admin" 
+                            className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname === '/admin' ? 'bg-primary-50 text-primary-600' : ''}`}
+                          >
+                            Admin
+                          </Link>
+                        )}
                         <Link 
-                          href="/calculadoras/jubilacion-pension" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                          href="/profile" 
+                          className={`block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors ${pathname === '/profile' ? 'bg-primary-50 text-primary-600' : ''}`}
                         >
-                          Jubilación y Pensión
-                        </Link>
-                        <Link 
-                          href="/calculadoras/ipci" 
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
-                        >
-                          IPCI
+                          Perfil
                         </Link>
                       </div>
                     )}
                   </div>
-                  <Link 
-                    href="/plans" 
-                    className={`${pathname === '/plans' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
-                  >
-                    Planes
-                  </Link>
-                  <Link 
-                    href="/blog" 
-                    className={`${pathname === '/blog' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
-                  >
-                    Blog
-                  </Link>
-                  <Link 
-                    href="/test" 
-                    className={`${pathname === '/test' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
-                  >
-                    Test
-                  </Link>
-                  <Link 
-                    href="/community" 
-                    className={`${pathname === '/community' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
-                  >
-                    Comunidad
-                  </Link>
-                  <Link 
-                    href="/mensajes" 
-                    className={`${pathname === '/mensajes' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
-                  >
-                    Mensajes
-                  </Link>
-                  {isAdmin && (
-                    <Link 
-                      href="/admin" 
-                      className={`${pathname === '/admin' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
-                    >
-                      Admin
-                    </Link>
-                  )}
-                  <Link 
-                    href="/profile" 
-                    className={`${pathname === '/profile' ? 'text-primary-600 font-semibold' : 'text-gray-700'} hover:text-primary-600 transition-colors`}
-                  >
-                    Perfil
-                  </Link>
                   <button
                     onClick={handleLogout}
                     className="px-3 sm:px-4 py-2 rounded-xl text-gray-700 border border-transparent transition-colors duration-300 hover:bg-red-500 hover:text-white text-sm sm:text-base"
@@ -279,19 +245,13 @@ export function Navbar() {
             >
               Calendario
             </Link>
-            <div className="border-t border-gray-100 my-2" />
-            <p className="text-xs font-semibold text-gray-500 px-2 uppercase tracking-wide">Calculadoras</p>
-            <div className="grid grid-cols-1 gap-1">
-              <Link href="/calculadoras/hipotecas" onClick={() => setMobileOpen(false)} className="block px-2 py-1.5 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600 text-sm">Hipotecas</Link>
-              <Link href="/calculadoras/rentabilidad" onClick={() => setMobileOpen(false)} className="block px-2 py-1.5 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600 text-sm">Rentabilidad</Link>
-              <Link href="/calculadoras/libertad-financiera" onClick={() => setMobileOpen(false)} className="block px-2 py-1.5 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600 text-sm">Libertad Financiera</Link>
-              <Link href="/calculadoras/interes-compuesto" onClick={() => setMobileOpen(false)} className="block px-2 py-1.5 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600 text-sm">Interés Compuesto</Link>
-              <Link href="/calculadoras/ratio-productividad" onClick={() => setMobileOpen(false)} className="block px-2 py-1.5 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600 text-sm">Ratio de Productividad</Link>
-              <Link href="/calculadoras/inversion-inmobiliaria" onClick={() => setMobileOpen(false)} className="block px-2 py-1.5 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600 text-sm">Inversión Inmobiliaria</Link>
-              <Link href="/calculadoras/reparto-herencia" onClick={() => setMobileOpen(false)} className="block px-2 py-1.5 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600 text-sm">Reparto de Herencia</Link>
-              <Link href="/calculadoras/jubilacion-pension" onClick={() => setMobileOpen(false)} className="block px-2 py-1.5 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600 text-sm">Jubilación y Pensión</Link>
-              <Link href="/calculadoras/ipci" onClick={() => setMobileOpen(false)} className="block px-2 py-1.5 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600 text-sm">IPCI</Link>
-            </div>
+            <Link 
+              href="/calculadoras" 
+              onClick={() => setMobileOpen(false)} 
+              className="block px-2 py-2 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+            >
+              Calculadoras
+            </Link>
             <div className="border-t border-gray-100 my-2" />
             <Link href="/plans" onClick={() => setMobileOpen(false)} className="block px-2 py-2 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600">Planes</Link>
             <Link href="/blog" onClick={() => setMobileOpen(false)} className="block px-2 py-2 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-600">Blog</Link>

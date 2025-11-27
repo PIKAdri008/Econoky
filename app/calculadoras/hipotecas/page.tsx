@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { clampNumber } from '@/lib/utils/number'
 
 export default function HipotecasPage() {
   const [capital, setCapital] = useState(100000)
@@ -10,6 +11,12 @@ export default function HipotecasPage() {
   const [anoAmortizar, setAnoAmortizar] = useState(5)
   const [mesAmortizar, setMesAmortizar] = useState(2)
   const [resultados, setResultados] = useState<any>(null)
+
+  const sanitizeCapital = (value: string | number) => clampNumber(value, 0, 2000000)
+  const sanitizePlazo = (value: string | number) => clampNumber(value, 1, 40)
+  const sanitizeInteres = (value: string | number) => clampNumber(value, 0, 20)
+  const sanitizeAno = (value: string | number) => clampNumber(value, 1, plazo)
+  const sanitizeMes = (value: string | number) => clampNumber(value, 1, 12)
 
   const calcular = () => {
     // Convertir tasa anual a mensual
@@ -80,8 +87,11 @@ export default function HipotecasPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={2000000}
+                    inputMode="decimal"
                     value={capital}
-                    onChange={(e) => setCapital(Number(e.target.value))}
+                    onChange={(e) => setCapital(sanitizeCapital(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -93,8 +103,10 @@ export default function HipotecasPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={1}
+                    max={40}
                     value={plazo}
-                    onChange={(e) => setPlazo(Number(e.target.value))}
+                    onChange={(e) => setPlazo(sanitizePlazo(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">años</span>
@@ -107,8 +119,10 @@ export default function HipotecasPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={20}
                     value={tipoInteres}
-                    onChange={(e) => setTipoInteres(Number(e.target.value))}
+                    onChange={(e) => setTipoInteres(sanitizeInteres(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">%</span>
@@ -157,8 +171,10 @@ export default function HipotecasPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={capital}
                     value={cantidadAmortizar}
-                    onChange={(e) => setCantidadAmortizar(Number(e.target.value))}
+                    onChange={(e) => setCantidadAmortizar(clampNumber(e.target.value, 0, capital))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -172,7 +188,7 @@ export default function HipotecasPage() {
                   min="1"
                   max={plazo}
                   value={anoAmortizar}
-                  onChange={(e) => setAnoAmortizar(Number(e.target.value))}
+                    onChange={(e) => setAnoAmortizar(sanitizeAno(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
               </div>
@@ -184,7 +200,7 @@ export default function HipotecasPage() {
                   min="1"
                   max="12"
                   value={mesAmortizar}
-                  onChange={(e) => setMesAmortizar(Number(e.target.value))}
+                    onChange={(e) => setMesAmortizar(sanitizeMes(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
               </div>

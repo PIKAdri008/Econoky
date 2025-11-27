@@ -25,11 +25,37 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    profile.is_verified = true
-    profile.verification_token = null
-    await profile.save()
+    // Verificar si ya está verificado
+    if (profile.is_verified) {
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Tu cuenta ya estaba verificada' 
+      })
+    }
 
-    return NextResponse.json({ success: true })
+    // Actualizar usando findOneAndUpdate para asegurar la actualización
+    const updatedProfile = await Profile.findOneAndUpdate(
+      { verification_token: token },
+      { 
+        $set: { 
+          is_verified: true,
+          verification_token: null 
+        } 
+      },
+      { new: true }
+    )
+
+    if (!updatedProfile) {
+      return NextResponse.json(
+        { error: 'No se pudo actualizar la cuenta' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ 
+      success: true,
+      message: 'Cuenta verificada correctamente' 
+    })
   } catch (error: any) {
     console.error('Error verificando cuenta:', error)
     return NextResponse.json(

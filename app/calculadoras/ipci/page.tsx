@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { clampNumber } from '@/lib/utils/number'
 
 const formatoEUR = new Intl.NumberFormat('es-ES', {
   style: 'currency',
@@ -42,12 +43,16 @@ export default function IPCIPage() {
   const [añoActual, setAñoActual] = useState(new Date().getFullYear())
   const [resultados, setResultados] = useState<any>(null)
 
+  const clampGasto = (valor: string) => clampNumber(valor, 0, 20000)
+  const clampYear = (valor: string | number, fallback: number) =>
+    clampNumber(valor, 2000, 2100) || fallback
+
   const actualizarProducto = (id: string, campo: 'precioAnterior' | 'precioActual', valor: string) => {
     setProductos(prev => prev.map(p => {
       if (p.id === id) {
         return {
           ...p,
-          [campo]: valor === '' ? null : parseFloat(valor) || null
+          [campo]: valor === '' ? null : clampGasto(valor)
         }
       }
       return p
@@ -121,8 +126,13 @@ export default function IPCIPage() {
               <label className="block text-sm font-medium text-secondary-dark mb-1">Año Anterior</label>
               <input
                 type="number"
+                min={2000}
+                max={añoActual}
                 value={añoAnterior}
-                onChange={(e) => setAñoAnterior(Number(e.target.value))}
+                onChange={(e) => {
+                  const nuevo = clampYear(e.target.value, añoAnterior)
+                  setAñoAnterior(Math.min(nuevo, añoActual - 1))
+                }}
                 className="w-full px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
               />
             </div>
@@ -130,8 +140,13 @@ export default function IPCIPage() {
               <label className="block text-sm font-medium text-secondary-dark mb-1">Año Actual</label>
               <input
                 type="number"
+                min={añoAnterior + 1}
+                max={2100}
                 value={añoActual}
-                onChange={(e) => setAñoActual(Number(e.target.value))}
+                onChange={(e) => {
+                  const nuevo = clampYear(e.target.value, añoActual)
+                  setAñoActual(Math.max(nuevo, añoAnterior + 1))
+                }}
                 className="w-full px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
               />
             </div>
@@ -155,6 +170,7 @@ export default function IPCIPage() {
                       type="number"
                       step="0.01"
                       min="0"
+                      max="20000"
                       value={producto.precioAnterior ?? ''}
                       onChange={(e) => actualizarProducto(producto.id, 'precioAnterior', e.target.value)}
                       placeholder="0.00"
@@ -169,6 +185,7 @@ export default function IPCIPage() {
                       type="number"
                       step="0.01"
                       min="0"
+                      max="20000"
                       value={producto.precioActual ?? ''}
                       onChange={(e) => actualizarProducto(producto.id, 'precioActual', e.target.value)}
                       placeholder="0.00"

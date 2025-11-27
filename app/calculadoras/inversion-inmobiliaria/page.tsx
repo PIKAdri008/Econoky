@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { clampNumber } from '@/lib/utils/number'
 
 export default function InversionInmobiliariaPage() {
   const [precioCompra, setPrecioCompra] = useState(100000)
@@ -23,6 +24,11 @@ export default function InversionInmobiliariaPage() {
   const [alquilerMensual, setAlquilerMensual] = useState(1000)
   const [imprevistos, setImprevistos] = useState(10)
   const [resultados, setResultados] = useState<any>(null)
+
+  const sanitizeEuro = (value: string | number, max = 2000000) => clampNumber(value, 0, max)
+  const sanitizePercent = (value: string | number, max = 100) => clampNumber(value, 0, max)
+  const sanitizeTipo = (value: string | number) => clampNumber(value, 0, 15)
+  const sanitizePlazo = (value: string | number) => clampNumber(value, 1, 40)
 
   const calcular = () => {
     const capitalFinanciado = precioCompra * (porcentajeFinanciado / 100)
@@ -84,8 +90,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
+                    min={0}
+                    max={2000000}
                     value={precioCompra}
-                    onChange={(e) => setPrecioCompra(Number(e.target.value))}
+                    onChange={(e) => setPrecioCompra(sanitizeEuro(e.target.value))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">€</span>
@@ -97,8 +105,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
+                    min={0}
+                    max={2000000}
                     value={ahorros}
-                    onChange={(e) => setAhorros(Number(e.target.value))}
+                    onChange={(e) => setAhorros(sanitizeEuro(e.target.value))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">€</span>
@@ -110,8 +120,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
+                    min={0}
+                    max={100}
                     value={porcentajeFinanciado}
-                    onChange={(e) => setPorcentajeFinanciado(Number(e.target.value))}
+                    onChange={(e) => setPorcentajeFinanciado(sanitizePercent(e.target.value))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">%</span>
@@ -124,8 +136,10 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={15}
                     value={tipo}
-                    onChange={(e) => setTipo(Number(e.target.value))}
+                    onChange={(e) => setTipo(sanitizeTipo(e.target.value))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">%</span>
@@ -137,8 +151,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
+                    min={1}
+                    max={40}
                     value={plazo}
-                    onChange={(e) => setPlazo(Number(e.target.value))}
+                    onChange={(e) => setPlazo(sanitizePlazo(e.target.value))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">años</span>
@@ -151,8 +167,10 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={15}
                     value={tasaGestionInmobiliaria}
-                    onChange={(e) => setTasaGestionInmobiliaria(Number(e.target.value))}
+                    onChange={(e) => setTasaGestionInmobiliaria(sanitizePercent(e.target.value, 20))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">%</span>
@@ -165,8 +183,10 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={10}
                     value={tasaGestionPrestamo}
-                    onChange={(e) => setTasaGestionPrestamo(Number(e.target.value))}
+                    onChange={(e) => setTasaGestionPrestamo(sanitizePercent(e.target.value, 15))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">%</span>
@@ -179,8 +199,10 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={20}
                     value={impuestosCompra}
-                    onChange={(e) => setImpuestosCompra(Number(e.target.value))}
+                    onChange={(e) => setImpuestosCompra(sanitizePercent(e.target.value, 20))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">%</span>
@@ -192,8 +214,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
+                    min={0}
+                    max={20000}
                     value={tasacion}
-                    onChange={(e) => setTasacion(Number(e.target.value))}
+                    onChange={(e) => setTasacion(sanitizeEuro(e.target.value, 20000))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">€</span>
@@ -205,8 +229,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
+                    min={0}
+                    max={200000}
                     value={obraMuebles}
-                    onChange={(e) => setObraMuebles(Number(e.target.value))}
+                    onChange={(e) => setObraMuebles(sanitizeEuro(e.target.value, 200000))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">€</span>
@@ -219,8 +245,10 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={15}
                     value={comisionAgencia}
-                    onChange={(e) => setComisionAgencia(Number(e.target.value))}
+                    onChange={(e) => setComisionAgencia(sanitizePercent(e.target.value, 15))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">%</span>
@@ -233,8 +261,10 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={15}
                     value={comisionFinanciera}
-                    onChange={(e) => setComisionFinanciera(Number(e.target.value))}
+                    onChange={(e) => setComisionFinanciera(sanitizePercent(e.target.value, 15))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-xs text-gray-600">%</span>
@@ -254,8 +284,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={10000}
                     value={ibi}
-                    onChange={(e) => setIbi(Number(e.target.value))}
+                    onChange={(e) => setIbi(sanitizeEuro(e.target.value, 10000))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -267,8 +299,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={2000}
                     value={comunidad}
-                    onChange={(e) => setComunidad(Number(e.target.value))}
+                    onChange={(e) => setComunidad(sanitizeEuro(e.target.value, 2000))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -280,8 +314,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={2000}
                     value={seguroHogar}
-                    onChange={(e) => setSeguroHogar(Number(e.target.value))}
+                    onChange={(e) => setSeguroHogar(sanitizeEuro(e.target.value, 2000))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -293,8 +329,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={2000}
                     value={seguroVida}
-                    onChange={(e) => setSeguroVida(Number(e.target.value))}
+                    onChange={(e) => setSeguroVida(sanitizeEuro(e.target.value, 2000))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -306,8 +344,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={2000}
                     value={suministros}
-                    onChange={(e) => setSuministros(Number(e.target.value))}
+                    onChange={(e) => setSuministros(sanitizeEuro(e.target.value, 2000))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -319,8 +359,10 @@ export default function InversionInmobiliariaPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={10000}
                     value={alquilerMensual}
-                    onChange={(e) => setAlquilerMensual(Number(e.target.value))}
+                    onChange={(e) => setAlquilerMensual(sanitizeEuro(e.target.value, 10000))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -333,8 +375,10 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={30}
                     value={imprevistos}
-                    onChange={(e) => setImprevistos(Number(e.target.value))}
+                    onChange={(e) => setImprevistos(sanitizePercent(e.target.value, 30))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">%</span>

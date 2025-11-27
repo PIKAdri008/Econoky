@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { clampNumber } from '@/lib/utils/number'
 
 export default function LibertadFinancieraPage() {
   const [ingresosPasivos, setIngresosPasivos] = useState(1000)
@@ -48,8 +49,10 @@ export default function LibertadFinancieraPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={0}
+                  max={100000}
                   value={ingresosPasivos}
-                  onChange={(e) => setIngresosPasivos(Number(e.target.value))}
+                  onChange={(e) => setIngresosPasivos(clampNumber(e.target.value, 0, 100000))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>
@@ -61,8 +64,10 @@ export default function LibertadFinancieraPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={0}
+                  max={100000}
                   value={gastosCorrientes}
-                  onChange={(e) => setGastosCorrientes(Number(e.target.value))}
+                  onChange={(e) => setGastosCorrientes(clampNumber(e.target.value, 0, 100000))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>
@@ -74,8 +79,10 @@ export default function LibertadFinancieraPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={0}
+                  max={2000000}
                   value={activosLiquidos}
-                  onChange={(e) => setActivosLiquidos(Number(e.target.value))}
+                  onChange={(e) => setActivosLiquidos(clampNumber(e.target.value, 0, 2000000))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>
@@ -87,8 +94,10 @@ export default function LibertadFinancieraPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={18}
+                  max={80}
                   value={edad}
-                  onChange={(e) => setEdad(Number(e.target.value))}
+                  onChange={(e) => setEdad(clampNumber(e.target.value, 18, Math.min(esperanzaVida - 5, 80)))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">años</span>
@@ -100,8 +109,10 @@ export default function LibertadFinancieraPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={60}
+                  max={100}
                   value={esperanzaVida}
-                  onChange={(e) => setEsperanzaVida(Number(e.target.value))}
+                  onChange={(e) => setEsperanzaVida(clampNumber(e.target.value, Math.max(edad + 5, 60), 100))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">años</span>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { clampNumber } from '@/lib/utils/number'
 
 const formatoEUR = new Intl.NumberFormat('es-ES', {
   style: 'currency',
@@ -8,6 +9,8 @@ const formatoEUR = new Intl.NumberFormat('es-ES', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 })
+
+const MAX_PENSION_ANUAL = 42823 // límite aproximado 2025 contributiva
 
 export default function JubilacionPensionPage() {
   const [edadActual, setEdadActual] = useState(30)
@@ -18,18 +21,47 @@ export default function JubilacionPensionPage() {
   const [capitalActual, setCapitalActual] = useState(0)
   const [resultados, setResultados] = useState<any>(null)
 
+  const sanitizeEdadActual = (value: string | number) => clampNumber(value, 18, 60)
+  const sanitizeEdadJubilacion = (value: string | number) => clampNumber(value, 61, 75)
+  const sanitizeSalario = (value: string | number) => clampNumber(value, 12000, 120000)
+  const sanitizeAportacion = (value: string | number) => clampNumber(value, 0, 10000)
+  const sanitizeRentabilidad = (value: string | number) => clampNumber(value, 0, 12)
+  const sanitizeCapital = (value: string | number) => clampNumber(value, 0, 2000000)
+
+  const calcularPensionPublica = (salario: number, edadTrabajador: number, edadJub: number) => {
+    const anosCotizadosEstimados = clampNumber(edadJub - Math.max(22, edadTrabajador - 5), 15, 36)
+    const porcentajeReguladora = Math.min(50 + (anosCotizadosEstimados - 15) * 0.7, 100)
+    const baseReguladora = salario * 0.85
+    const pensionAnual = Math.min(baseReguladora * (porcentajeReguladora / 100), MAX_PENSION_ANUAL)
+    return pensionAnual / 12
+  }
+
   const calcular = () => {
-    const añosRestantes = edadJubilacion - edadActual
+    const edadHoy = sanitizeEdadActual(edadActual)
+    const edadJub = sanitizeEdadJubilacion(edadJubilacion)
+    const sueldo = sanitizeSalario(salarioAnual)
+    const aporte = sanitizeAportacion(aportacionMensual)
+    const rentabilidad = sanitizeRentabilidad(rentabilidadEsperada)
+    const capitalInicial = sanitizeCapital(capitalActual)
+
+    setEdadActual(edadHoy)
+    setEdadJubilacion(edadJub)
+    setSalarioAnual(sueldo)
+    setAportacionMensual(aporte)
+    setRentabilidadEsperada(rentabilidad)
+    setCapitalActual(capitalInicial)
+
+    const añosRestantes = Math.max(edadJub - edadHoy, 1)
     const mesesRestantes = añosRestantes * 12
-    const tasaMensual = rentabilidadEsperada / 100 / 12
+    const tasaMensual = rentabilidad / 100 / 12
 
     // Calcular capital acumulado al jubilarse
-    let capital = capitalActual
-    let totalAportado = capitalActual
+    let capital = capitalInicial
+    let totalAportado = capitalInicial
 
     for (let mes = 1; mes <= mesesRestantes; mes++) {
-      capital = capital * (1 + tasaMensual) + aportacionMensual
-      totalAportado += aportacionMensual
+      capital = capital * (1 + tasaMensual) + aporte
+      totalAportado += aporte
     }
 
     const interesesGenerados = capital - totalAportado
@@ -38,9 +70,8 @@ export default function JubilacionPensionPage() {
     const tasaRetiroSeguro = 0.04 / 12 // 4% anual dividido entre 12 meses
     const pensionMensualEstimada = capital * tasaRetiroSeguro
 
-    // Calcular pensión del sistema público (estimación simplificada)
-    // Basado en el 80% del salario promedio de los últimos años
-    const pensionPublicaEstimada = salarioAnual * 0.8 / 12
+    // Calcular pensión pública estimada siguiendo normativa española
+    const pensionPublicaEstimada = calcularPensionPublica(sueldo, edadHoy, edadJub)
 
     // Calcular pensión total
     const pensionTotalMensual = pensionMensualEstimada + pensionPublicaEstimada
@@ -49,7 +80,7 @@ export default function JubilacionPensionPage() {
     const añosDuracionCapital = capital > 0 ? capital / (pensionMensualEstimada * 12) : 0
 
     // Calcular cuánto necesitas ahorrar para una pensión objetivo
-    const pensionObjetivoMensual = salarioAnual * 0.7 / 12 // 70% del salario actual
+    const pensionObjetivoMensual = sueldo * 0.7 / 12 // 70% del salario actual
     const pensionObjetivoPrivada = pensionObjetivoMensual - pensionPublicaEstimada
     const capitalNecesario = pensionObjetivoPrivada > 0 
       ? pensionObjetivoPrivada * 12 / 0.04 
@@ -66,7 +97,7 @@ export default function JubilacionPensionPage() {
       pensionObjetivoMensual,
       capitalNecesario,
       añosRestantes,
-      datosAnuales: calcularEvolucionAnual(capitalActual, aportacionMensual, tasaMensual, añosRestantes),
+      datosAnuales: calcularEvolucionAnual(capitalInicial, aporte, tasaMensual, añosRestantes),
     })
   }
 
@@ -100,9 +131,13 @@ export default function JubilacionPensionPage() {
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-4 text-secondary-dark">Calculadora de Jubilación y Pensión</h1>
-        <p className="text-secondary-dark/80 mb-8">
+        <p className="text-secondary-dark/80 mb-4">
           Esta calculadora te permite estimar tu pensión de jubilación considerando tus ahorros privados y la pensión pública estimada. 
           Te ayuda a planificar cuánto necesitas ahorrar para alcanzar tus objetivos de jubilación.
+        </p>
+        <p className="text-sm text-secondary-dark/70 mb-8">
+          Las estimaciones siguen las reglas generales de la Seguridad Social española: topes de pensión contributiva,
+          porcentajes dependiendo de los años cotizados y edad ordinaria de jubilación.
         </p>
 
         <div className="bg-white/90 backdrop-blur rounded-2xl border border-secondary-light shadow-glow-primary p-6 mb-8">
@@ -118,7 +153,7 @@ export default function JubilacionPensionPage() {
                   min="18"
                   max="100"
                   value={edadActual}
-                  onChange={(e) => setEdadActual(Number(e.target.value))}
+                  onChange={(e) => setEdadActual(sanitizeEdadActual(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
                 />
                 <span className="text-secondary-dark/70">años</span>
@@ -133,7 +168,7 @@ export default function JubilacionPensionPage() {
                   min="60"
                   max="75"
                   value={edadJubilacion}
-                  onChange={(e) => setEdadJubilacion(Number(e.target.value))}
+                  onChange={(e) => setEdadJubilacion(sanitizeEdadJubilacion(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
                 />
                 <span className="text-secondary-dark/70">años</span>
@@ -145,8 +180,10 @@ export default function JubilacionPensionPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={12000}
+                  max={120000}
                   value={salarioAnual}
-                  onChange={(e) => setSalarioAnual(Number(e.target.value))}
+                  onChange={(e) => setSalarioAnual(sanitizeSalario(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
                 />
                 <span className="text-secondary-dark/70">€</span>
@@ -158,8 +195,10 @@ export default function JubilacionPensionPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={0}
+                  max={10000}
                   value={aportacionMensual}
-                  onChange={(e) => setAportacionMensual(Number(e.target.value))}
+                  onChange={(e) => setAportacionMensual(sanitizeAportacion(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
                 />
                 <span className="text-secondary-dark/70">€</span>
@@ -171,8 +210,10 @@ export default function JubilacionPensionPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={0}
+                  max={2000000}
                   value={capitalActual}
-                  onChange={(e) => setCapitalActual(Number(e.target.value))}
+                  onChange={(e) => setCapitalActual(sanitizeCapital(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
                 />
                 <span className="text-secondary-dark/70">€</span>
@@ -185,8 +226,10 @@ export default function JubilacionPensionPage() {
                 <input
                   type="number"
                   step="0.1"
+                  min={0}
+                  max={12}
                   value={rentabilidadEsperada}
-                  onChange={(e) => setRentabilidadEsperada(Number(e.target.value))}
+                  onChange={(e) => setRentabilidadEsperada(sanitizeRentabilidad(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
                 />
                 <span className="text-secondary-dark/70">%</span>

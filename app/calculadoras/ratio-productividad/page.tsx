@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { clampNumber } from '@/lib/utils/number'
 
 export default function RatioProductividadPage() {
   const [ingresos, setIngresos] = useState(1000)
@@ -30,8 +31,10 @@ export default function RatioProductividadPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={0}
+                  max={1000000}
                   value={ingresos}
-                  onChange={(e) => setIngresos(Number(e.target.value))}
+                  onChange={(e) => setIngresos(clampNumber(e.target.value, 0, 1000000))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>
@@ -43,8 +46,10 @@ export default function RatioProductividadPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={1}
+                  max={320}
                   value={tiempo}
-                  onChange={(e) => setTiempo(Number(e.target.value))}
+                  onChange={(e) => setTiempo(clampNumber(e.target.value, 1, 320))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">h</span>

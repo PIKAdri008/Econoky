@@ -1,226 +1,226 @@
 'use client'
 
 import { useState } from 'react'
+import { clampNumber } from '@/lib/utils/number'
+
+const euro = (value: number) =>
+  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value)
 
 export default function RepartoHerenciaPage() {
-  const [activoNeto, setActivoNeto] = useState(1)
-  const [edadConyuge, setEdadConyuge] = useState(14)
+  const [activoNeto, setActivoNeto] = useState(250000)
+  const [edadConyuge, setEdadConyuge] = useState(45)
   const [numeroHijos, setNumeroHijos] = useState(2)
+  const [tieneAscendientes, setTieneAscendientes] = useState(true)
   const [resultados, setResultados] = useState<any>(null)
 
+  const sanitizeMoneda = (value: string | number, max = 5000000) =>
+    clampNumber(value, 0, max)
+  const sanitizeEntero = (value: string | number, min = 0, max = 10) =>
+    Math.round(clampNumber(value, min, max))
+
   const calcular = () => {
-    // El cónyuge recibe el 50% en concepto de gananciales
-    const gananciales = activoNeto * 0.5
-    const masaHereditaria = activoNeto * 0.5
+    const capital = sanitizeMoneda(activoNeto)
+    const hijos = sanitizeEntero(numeroHijos, 0, 10)
+    const edad = clampNumber(edadConyuge, 18, 99)
 
-    // Opción A: Tercio de libre disposición de un cónyuge a otro e hijos a partes iguales
-    const tercioLibre = masaHereditaria / 3
-    const tercioLegitima = masaHereditaria / 3
-    const tercioMejora = masaHereditaria / 3
+    setActivoNeto(capital)
+    setNumeroHijos(hijos)
+    setEdadConyuge(edad)
 
-    const opcionA = {
-      conyuge: gananciales + tercioLibre + tercioMejora,
-      hijos: Array(numeroHijos).fill(0).map(() => tercioLegitima / numeroHijos),
+    const gananciales = capital * 0.5
+    const masaHereditaria = capital - gananciales
+
+    if (hijos > 0) {
+      const tercioLegitima = masaHereditaria / 3
+      const tercioMejora = masaHereditaria / 3
+      const tercioLibre = masaHereditaria / 3
+
+      const repartoLegitima = Array.from({ length: hijos }, () => tercioLegitima / hijos)
+
+      setResultados({
+        tipo: 'descendientes',
+        gananciales,
+        masaHereditaria,
+        hijos,
+        opciones: {
+          A: {
+            descripcion: 'Tercio libre y de mejora para el cónyuge. Hijos solo legítima estricta.',
+            conyuge: gananciales + tercioLibre + tercioMejora,
+            hijos: repartoLegitima,
+          },
+          B: {
+            descripcion: 'Libre y mejora para los hijos a partes iguales.',
+            conyuge: gananciales + tercioLibre,
+            hijos: Array.from({ length: hijos }, () => (tercioLegitima + tercioMejora) / hijos),
+          },
+          C: {
+            descripcion: 'Libre y mejora al hijo 1 (habitual en negocios familiares).',
+            conyuge: gananciales + tercioLibre,
+            hijos: Array.from({ length: hijos }, (_, i) =>
+              tercioLegitima / hijos + (i === 0 ? tercioMejora : 0)
+            ),
+          },
+        },
+      })
+    } else {
+      const legitimaAscendientes = tieneAscendientes
+        ? masaHereditaria * (gananciales > 0 ? 1 / 3 : 1 / 2)
+        : 0
+      const libreDisposicion = masaHereditaria - legitimaAscendientes
+      const porcentajeUsufructo = clampNumber(89 - edad, 10, 70) / 100
+      const baseUsufructo = tieneAscendientes ? masaHereditaria / 2 : masaHereditaria
+      const valorUsufructo = baseUsufructo * porcentajeUsufructo
+
+      setResultados({
+        tipo: 'ascendientes',
+        gananciales,
+        masaHereditaria,
+        legitimaAscendientes,
+        libreDisposicion,
+        valorUsufructo,
+        porcentajeUsufructo: porcentajeUsufructo * 100,
+        mensaje: tieneAscendientes
+          ? 'Se calcula la legítima estricta para los ascendientes y el usufructo del 50% para el cónyuge (art. 834 CC).'
+          : 'Sin descendientes ni ascendientes, el cónyuge puede recibir el resto de la herencia en plena propiedad.',
+      })
     }
-
-    // Opción B: Tercio de libre disposición y el de mejora a los hijos a partes iguales
-    const opcionB = {
-      conyuge: gananciales + tercioLibre,
-      hijos: Array(numeroHijos).fill(0).map(() => (tercioLegitima + tercioMejora) / numeroHijos),
-    }
-
-    // Opción C: Tercio de libre disposición y el de mejora al hijo 1
-    const opcionC = {
-      conyuge: gananciales + tercioLibre,
-      hijos: Array(numeroHijos).fill(0).map((_, i) => 
-        i === 0 
-          ? tercioLegitima / numeroHijos + tercioMejora
-          : tercioLegitima / numeroHijos
-      ),
-    }
-
-    setResultados({
-      gananciales: gananciales.toFixed(2),
-      masaHereditaria: masaHereditaria.toFixed(2),
-      opcionA,
-      opcionB,
-      opcionC,
-    })
   }
+
+  const renderDescendientes = () => (
+    <div className="space-y-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p className="text-sm text-gray-700">
+          El cónyuge recibe automáticamente el 50% ({euro(resultados.gananciales)}) como gananciales y se reparten los tercios de la masa hereditaria
+          ({euro(resultados.masaHereditaria)}) según el Código Civil español.
+        </p>
+      </div>
+
+      {Object.entries(resultados.opciones).map(([clave, opcion]: any) => (
+        <div key={clave} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-lg font-semibold text-secondary-dark">
+              Opción {clave}
+            </h4>
+            <p className="text-sm text-secondary-dark/70">{opcion.descripcion}</p>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-700">Cónyuge</span>
+              <span className="font-semibold">{euro(opcion.conyuge)}</span>
+            </div>
+            {opcion.hijos.map((cantidad: number, index: number) => (
+              <div key={index} className="flex items-center justify-between text-sm">
+                <span>Hijo {index + 1}</span>
+                <span className="font-semibold text-primary-700">{euro(cantidad)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const renderAscendientes = () => (
+    <div className="space-y-6">
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-sm text-purple-900">
+        {resultados.mensaje}
+      </div>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-gray-700">Legítima de ascendientes</span>
+          <span className="font-semibold">{euro(resultados.legitimaAscendientes)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-gray-700">Libre disposición</span>
+          <span className="font-semibold">{euro(resultados.libreDisposicion)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-gray-700">Valor del usufructo conyugal ({resultados.porcentajeUsufructo.toFixed(2)}%)</span>
+          <span className="font-semibold text-primary-700">{euro(resultados.valorUsufructo)}</span>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-white py-12 px-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-4 text-gray-900">Calculadora de Reparto de Herencia</h1>
-        <p className="text-gray-600 mb-8">
-          Esta calculadora te permite simular el reparto testamental de tu patrimonio según la legislación vigente.
+        <h1 className="text-4xl font-bold mb-4 text-secondary-dark">Calculadora de Reparto de Herencia</h1>
+        <p className="text-secondary-dark/80 mb-8">
+          Simula el reparto del patrimonio bajo las reglas del Código Civil español: legítima estricta, tercio de mejora y libre disposición.
         </p>
 
-        <div className="bg-gray-50 rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Datos de tu patrimonio y situación familiar</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Por favor, introduce los siguientes datos para mostrarte una simulación de tu reparto testamental:
-          </p>
-          
-          <div className="grid md:grid-cols-3 gap-4">
+        <div className="bg-white/90 rounded-2xl border border-secondary-light shadow-glow-primary p-6 mb-8">
+          <h2 className="text-xl font-bold text-secondary-dark mb-4">Datos familiares</h2>
+          <div className="grid md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Activo neto</label>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Activo neto</label>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={0}
+                  max={5000000}
                   value={activoNeto}
-                  onChange={(e) => setActivoNeto(Number(e.target.value))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
+                  onChange={(e) => setActivoNeto(sanitizeMoneda(e.target.value))}
+                  className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
                 />
-                <span className="text-gray-600">€</span>
+                <span className="text-secondary-dark/70">€</span>
               </div>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Edad del cónyuge</label>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Edad del cónyuge</label>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={18}
+                  max={99}
                   value={edadConyuge}
-                  onChange={(e) => setEdadConyuge(Number(e.target.value))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
+                  onChange={(e) => setEdadConyuge(clampNumber(e.target.value, 18, 99))}
+                  className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
                 />
-                <span className="text-gray-600">años</span>
+                <span className="text-secondary-dark/70">años</span>
               </div>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Número de hijos</label>
-              <div className="flex items-center gap-2">
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Número de hijos</label>
+              <input
+                type="number"
+                min={0}
+                max={10}
+                value={numeroHijos}
+                onChange={(e) => setNumeroHijos(sanitizeEntero(e.target.value))}
+                className="w-full px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
+              />
+            </div>
+            <div className="flex flex-col justify-end">
+              <label className="inline-flex items-center gap-2 text-sm font-medium text-secondary-dark">
                 <input
-                  type="number"
-                  min="1"
-                  value={numeroHijos}
-                  onChange={(e) => setNumeroHijos(Math.max(1, Number(e.target.value)))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
+                  type="checkbox"
+                  checked={tieneAscendientes}
+                  onChange={(e) => setTieneAscendientes(e.target.checked)}
+                  className="rounded border-secondary-light text-primary-600 focus:ring-primary-500"
+                  disabled={numeroHijos > 0}
                 />
-                <span className="text-gray-600">hijos</span>
-              </div>
+                Hay ascendientes vivos (padres)
+              </label>
+              <p className="text-xs text-secondary-dark/60 mt-1">
+                Solo se aplica cuando no hay descendientes.
+              </p>
             </div>
           </div>
-
           <div className="mt-6 text-center">
             <button
               onClick={calcular}
-              className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold"
+              className="cta-button px-10 py-3 rounded-full text-base font-semibold"
             >
-              Calcular
+              Calcular reparto
             </button>
           </div>
         </div>
 
         {resultados && (
-          <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-gray-700">
-                El cónyuge recibe el 50% ({resultados.gananciales}€) del activo neto en concepto de gananciales en todas las opciones.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Opciones de reparto para una masa hereditaria de {resultados.masaHereditaria}€
-              </h3>
-
-              {/* Opción A */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                  OPCIÓN A: Tercio de libre disposición de un cónyuge a otro e hijos a partes iguales.
-                </h4>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-700">Cónyuge</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-32 h-4 bg-blue-500 rounded"></div>
-                      <span className="font-semibold text-black">{resultados.opcionA.conyuge.toFixed(2)} €</span>
-                      <span className="text-sm text-black">
-                        ({((resultados.opcionA.conyuge / activoNeto) * 100).toFixed(2)}%)
-                      </span>
-                    </div>
-                  </div>
-                  {resultados.opcionA.hijos.map((hijo: number, index: number) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className="text-gray-700">Hijo {index + 1}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-4 bg-purple-500 rounded"></div>
-                        <span className="font-semibold text-black">{hijo.toFixed(2)} €</span>
-                        <span className="text-sm text-gray-500">
-                          ({((hijo / activoNeto) * 100).toFixed(2)}%)
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Opción B */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                  OPCIÓN B: Tercio de libre disposición y el de mejora a los hijos a partes iguales.
-                </h4>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-700">Cónyuge</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-32 h-4 bg-blue-500 rounded"></div>
-                      <span className="font-semibold text-black">{resultados.opcionB.conyuge.toFixed(2)} €</span>
-                      <span className="text-sm text-gray-500">
-                        ({((resultados.opcionB.conyuge / activoNeto) * 100).toFixed(2)}%)
-                      </span>
-                    </div>
-                  </div>
-                  {resultados.opcionB.hijos.map((hijo: number, index: number) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className="text-gray-700">Hijo {index + 1}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-4 bg-purple-500 rounded"></div>
-                        <span className="font-semibold text-black">{hijo.toFixed(2)} €</span>
-                        <span className="text-sm text-gray-500">
-                          ({((hijo / activoNeto) * 100).toFixed(2)}%)
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Opción C */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                  OPCIÓN C: Tercio de libre disposición y el de mejora al hijo 1.
-                </h4>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-700">Cónyuge</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-32 h-4 bg-blue-500 rounded"></div>
-                      <span className="font-semibold text-black">{resultados.opcionC.conyuge.toFixed(2)} €</span>
-                      <span className="text-sm text-gray-500">
-                        ({((resultados.opcionC.conyuge / activoNeto) * 100).toFixed(2)}%)
-                      </span>
-                    </div>
-                  </div>
-                  {resultados.opcionC.hijos.map((hijo: number, index: number) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className="text-gray-700">Hijo {index + 1}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-4 bg-purple-500 rounded"></div>
-                        <span className="font-semibold text-black">{hijo.toFixed(2)} €</span>
-                        <span className="text-sm text-gray-500">
-                          ({((hijo / activoNeto) * 100).toFixed(2)}%)
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          resultados.tipo === 'descendientes' ? renderDescendientes() : renderAscendientes()
         )}
       </div>
     </div>

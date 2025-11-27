@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { clampNumber } from '@/lib/utils/number'
 
 export default function RentabilidadPage() {
   const [rentabilidadAnual, setRentabilidadAnual] = useState(5)
@@ -8,6 +9,10 @@ export default function RentabilidadPage() {
   const [capitalInicial, setCapitalInicial] = useState(5000)
   const [plazo, setPlazo] = useState(30)
   const [resultados, setResultados] = useState<any>(null)
+
+  const sanitizePorcentaje = (value: string | number) => clampNumber(value, 0, 25)
+  const sanitizeEuros = (value: string | number) => clampNumber(value, 0, 200000)
+  const sanitizePlazo = (value: string | number) => clampNumber(value, 1, 50)
 
   const calcular = () => {
     const tasaMensual = rentabilidadAnual / 100 / 12
@@ -65,8 +70,10 @@ export default function RentabilidadPage() {
                 <input
                   type="number"
                   step="0.01"
+                  min={0}
+                  max={25}
                   value={rentabilidadAnual}
-                  onChange={(e) => setRentabilidadAnual(Number(e.target.value))}
+                  onChange={(e) => setRentabilidadAnual(sanitizePorcentaje(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">%</span>
@@ -78,8 +85,10 @@ export default function RentabilidadPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={0}
+                  max={20000}
                   value={aportacionMensual}
-                  onChange={(e) => setAportacionMensual(Number(e.target.value))}
+                  onChange={(e) => setAportacionMensual(sanitizeEuros(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>
@@ -91,8 +100,10 @@ export default function RentabilidadPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={0}
+                  max={500000}
                   value={capitalInicial}
-                  onChange={(e) => setCapitalInicial(Number(e.target.value))}
+                  onChange={(e) => setCapitalInicial(clampNumber(e.target.value, 0, 500000))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>
@@ -104,8 +115,10 @@ export default function RentabilidadPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  min={1}
+                  max={50}
                   value={plazo}
-                  onChange={(e) => setPlazo(Number(e.target.value))}
+                  onChange={(e) => setPlazo(sanitizePlazo(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">años</span>

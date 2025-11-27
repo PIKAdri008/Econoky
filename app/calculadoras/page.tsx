@@ -113,15 +113,28 @@ export default function CalculadorasPage() {
                 className="group"
               >
                 <div
-                  className={`bg-white rounded-lg p-6 hover:shadow-lg transition-all duration-300 h-full flex flex-col border 
+                  className={`rounded-2xl p-6 hover:shadow-lg transition-all duration-300 h-full flex flex-col border 
                     ${calc.id === 'ipci' 
-                      ? 'border-2 border-yellow-400 shadow-glow-primary' 
-                      : 'border-gray-200 hover:border-primary-600'
+                      ? 'border-2 border-yellow-400 shadow-glow-violet bg-gradient-to-br from-yellow-50 via-white to-white relative overflow-hidden'
+                      : 'bg-white border-gray-200 hover:border-primary-600'
                     }`}
                 >
-                  <div className={`${calc.bgColor} w-16 h-16 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  {calc.id === 'ipci' && (
+                    <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.6),_transparent_60%)]" aria-hidden="true" />
+                  )}
+                  <div className={`${calc.bgColor} w-16 h-16 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative`}>
                     <Icon className={`${calc.color} w-8 h-8`} />
                   </div>
+                  {calc.id === 'ipci' && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">
+                        Desarrollada por Econoky
+                      </span>
+                      <span className="px-2 py-1 text-[10px] font-semibold rounded-full bg-purple-100 text-purple-700 tracking-wide">
+                        Exclusiva
+                      </span>
+                    </div>
+                  )}
                   <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
                     {calc.title}
                   </h2>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { clampNumber } from '@/lib/utils/number'
 
 export default function InteresCompuestoPage() {
   const [valorActual, setValorActual] = useState(100000)
@@ -11,6 +12,10 @@ export default function InteresCompuestoPage() {
   const [plazoActualizar, setPlazoActualizar] = useState(10)
   const [resultadoCapitalizar, setResultadoCapitalizar] = useState<number | null>(null)
   const [resultadoActualizar, setResultadoActualizar] = useState<number | null>(null)
+
+  const sanitizeEuros = (value: string | number) => clampNumber(value, 0, 1000000)
+  const sanitizeTasa = (value: string | number) => clampNumber(value, 0, 25)
+  const sanitizePlazo = (value: string | number) => clampNumber(value, 1, 50)
 
   const calcularCapitalizar = () => {
     const tasa = tasaCapitalizar / 100
@@ -46,8 +51,10 @@ export default function InteresCompuestoPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={1000000}
                     value={valorActual}
-                    onChange={(e) => setValorActual(Number(e.target.value))}
+                    onChange={(e) => setValorActual(sanitizeEuros(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -60,8 +67,10 @@ export default function InteresCompuestoPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={25}
                     value={tasaCapitalizar}
-                    onChange={(e) => setTasaCapitalizar(Number(e.target.value))}
+                    onChange={(e) => setTasaCapitalizar(sanitizeTasa(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">%</span>
@@ -73,8 +82,10 @@ export default function InteresCompuestoPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={1}
+                    max={50}
                     value={plazoCapitalizar}
-                    onChange={(e) => setPlazoCapitalizar(Number(e.target.value))}
+                    onChange={(e) => setPlazoCapitalizar(sanitizePlazo(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">años</span>
@@ -103,8 +114,10 @@ export default function InteresCompuestoPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={0}
+                    max={1000000}
                     value={valorFuturo}
-                    onChange={(e) => setValorFuturo(Number(e.target.value))}
+                    onChange={(e) => setValorFuturo(sanitizeEuros(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>
@@ -117,8 +130,10 @@ export default function InteresCompuestoPage() {
                   <input
                     type="number"
                     step="0.01"
+                    min={0}
+                    max={25}
                     value={tasaActualizar}
-                    onChange={(e) => setTasaActualizar(Number(e.target.value))}
+                    onChange={(e) => setTasaActualizar(sanitizeTasa(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">%</span>
@@ -130,8 +145,10 @@ export default function InteresCompuestoPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    min={1}
+                    max={50}
                     value={plazoActualizar}
-                    onChange={(e) => setPlazoActualizar(Number(e.target.value))}
+                    onChange={(e) => setPlazoActualizar(sanitizePlazo(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">años</span>
