@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function VerifyPage() {
+function VerifyContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('Verificando tu cuenta...')
 
@@ -39,33 +38,45 @@ export default function VerifyPage() {
   }, [searchParams])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 bg-white rounded-2xl shadow-md p-8">
-        <h1 className="text-2xl font-bold text-center text-gray-900">Verificación de cuenta</h1>
-        <p
-          className={`text-center text-sm ${
-            status === 'success'
-              ? 'text-green-700'
-              : status === 'error'
-              ? 'text-red-700'
-              : 'text-gray-700'
-          }`}
-        >
-          {message}
-        </p>
-        {status !== 'loading' && (
-          <div className="text-center">
-            <Link
-              href="/auth/login"
-              className="inline-flex items-center justify-center px-6 py-2 rounded-full cta-button text-sm"
-            >
-              Ir a iniciar sesión
-            </Link>
-          </div>
-        )}
-      </div>
+    <div className="max-w-md w-full space-y-6 bg-white rounded-2xl shadow-md p-8">
+      <h1 className="text-2xl font-bold text-center text-gray-900">Verificación de cuenta</h1>
+      <p
+        className={`text-center text-sm ${
+          status === 'success'
+            ? 'text-green-700'
+            : status === 'error'
+            ? 'text-red-700'
+            : 'text-gray-700'
+        }`}
+      >
+        {message}
+      </p>
+      {status !== 'loading' && (
+        <div className="text-center">
+          <Link
+            href="/auth/login"
+            className="inline-flex items-center justify-center px-6 py-2 rounded-full cta-button text-sm"
+          >
+            Ir a iniciar sesión
+          </Link>
+        </div>
+      )}
     </div>
   )
 }
 
-
+export default function VerifyPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Suspense
+        fallback={
+          <div className="max-w-md w-full space-y-6 bg-white rounded-2xl shadow-md p-8 text-center text-gray-700">
+            Verificando tu cuenta...
+          </div>
+        }
+      >
+        <VerifyContent />
+      </Suspense>
+    </div>
+  )
+}

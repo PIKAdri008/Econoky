@@ -331,7 +331,7 @@ export default function TestPage() {
       frase,
       valor
     }
-
+    
     const nuevasRespuestas = respuestasParte3.filter(r => r.frase !== frase)
     nuevasRespuestas.push(nuevaRespuesta)
     setRespuestasParte3(nuevasRespuestas)
@@ -413,7 +413,7 @@ export default function TestPage() {
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-secondary-dark">
               Test psicofinanciero de Esmeralda
-            </h1>
+          </h1>
             <p className="text-lg italic text-secondary-dark/80 mb-2">
               "La duda es uno de los nombres de la inteligencia."
             </p>
@@ -453,8 +453,8 @@ export default function TestPage() {
                   <div>
                     <p className="font-semibold">Parte 2. Casos prácticos</p>
                     <p className="text-sm text-secondary-dark/70">Para evaluar cómo actúas (5 situaciones hipotéticas)</p>
-                  </div>
-                </div>
+                    </div>
+                    </div>
                 <div className="flex items-start gap-3">
                   <Heart className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -463,7 +463,7 @@ export default function TestPage() {
                   </div>
                 </div>
               </div>
-            </div>
+          </div>
 
             <div className="bg-primary-50/50 rounded-xl p-6 border border-primary-200">
               <p className="text-sm italic">
@@ -471,7 +471,7 @@ export default function TestPage() {
                 con la íntima conciencia de que cada respuesta es una página escrita por una parte de ti que 
                 apenas empieza a hablar.
               </p>
-            </div>
+          </div>
 
             <button
               onClick={() => setParteActual('parte1')}
@@ -490,9 +490,9 @@ export default function TestPage() {
     const pregunta = factor.preguntas[preguntaActualFactor]
     const progreso = ((factorActual * 3 + preguntaActualFactor + 1) / 30) * 100
 
-    return (
+  return (
       <div className="min-h-screen py-12 px-4">
-        <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-secondary-dark mb-2">Parte 1. Tu arquitectura invisible</h2>
             <p className="text-sm text-secondary-dark/70 mb-4">
@@ -611,14 +611,14 @@ export default function TestPage() {
               </p>
             </div>
 
-            <div className="space-y-3">
+          <div className="space-y-3">
               {[1, 2, 3, 4, 5].map(valor => (
-                <button
+              <button
                   key={valor}
                   onClick={() => handleRespuestaParte3(valor)}
                   className="w-full text-left p-4 bg-secondary-light/50 hover:bg-secondary-light border-2 border-transparent hover:border-primary-500 rounded-xl transition-all"
-                >
-                  <div className="flex items-center justify-between">
+              >
+                <div className="flex items-center justify-between">
                     <span className="font-medium text-secondary-dark">
                       {valor === 1 && 'No me representa en absoluto'}
                       {valor === 2 && 'Poco'}
@@ -627,11 +627,11 @@ export default function TestPage() {
                       {valor === 5 && 'Me representa completamente'}
                     </span>
                     <span className="text-primary-600 font-bold">{valor}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+                </div>
+              </button>
+            ))}
           </div>
+        </div>
         </div>
       </div>
     )
@@ -760,8 +760,8 @@ export default function TestPage() {
             </button>
           </div>
         </div>
-      </div>
-    )
+    </div>
+  )
   }
 
   return null
