@@ -50,7 +50,7 @@ export default function LibertadFinancieraPage() {
                 <input
                   type="number"
                   min={0}
-                  max={100000000}
+                  max={999999999}
                   value={ingresosPasivos}
                   onChange={(e) => setIngresosPasivos(sanitizeCurrencyInput(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
@@ -65,7 +65,7 @@ export default function LibertadFinancieraPage() {
                 <input
                   type="number"
                   min={0}
-                  max={100000000}
+                  max={999999999}
                   value={gastosCorrientes}
                   onChange={(e) => setGastosCorrientes(sanitizeCurrencyInput(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
@@ -80,7 +80,7 @@ export default function LibertadFinancieraPage() {
                 <input
                   type="number"
                   min={0}
-                  max={100000000}
+                  max={999999999}
                   value={activosLiquidos}
                   onChange={(e) => setActivosLiquidos(sanitizeCurrencyInput(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"

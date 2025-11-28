@@ -25,7 +25,7 @@ export default function InversionInmobiliariaPage() {
   const [imprevistos, setImprevistos] = useState(10)
   const [resultados, setResultados] = useState<any>(null)
 
-  const sanitizeEuro = (value: string | number, max = 100000000) =>
+  const sanitizeEuro = (value: string | number, max = 999999999) =>
     sanitizeCurrencyInput(value, max)
   const sanitizePercent = (value: string | number, max = 100) =>
     clampNumber(value, 0, max, { decimals: 2 })
@@ -93,7 +93,7 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     min={0}
-                    max={100000000}
+                  max={999999999}
                     value={precioCompra}
                     onChange={(e) => setPrecioCompra(sanitizeEuro(e.target.value))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
@@ -108,7 +108,7 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     min={0}
-                    max={100000000}
+                  max={999999999}
                     value={ahorros}
                     onChange={(e) => setAhorros(sanitizeEuro(e.target.value))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"

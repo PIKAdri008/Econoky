@@ -12,7 +12,7 @@ export default function RentabilidadPage() {
 
   const sanitizePorcentaje = (value: string | number) =>
     clampNumber(value, 0, 25, { decimals: 2 })
-  const sanitizeEuros = (value: string | number, max = 100000000) =>
+  const sanitizeEuros = (value: string | number, max = 999999999) =>
     sanitizeCurrencyInput(value, max)
   const sanitizePlazo = (value: string | number) => clampNumber(value, 1, 50)
 
@@ -88,7 +88,7 @@ export default function RentabilidadPage() {
                 <input
                   type="number"
                   min={0}
-                    max={100000000}
+                  max={999999999}
                   value={aportacionMensual}
                   onChange={(e) => setAportacionMensual(sanitizeEuros(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
@@ -103,7 +103,7 @@ export default function RentabilidadPage() {
                 <input
                   type="number"
                   min={0}
-                  max={100000000}
+                  max={999999999}
                   value={capitalInicial}
                   onChange={(e) => setCapitalInicial(sanitizeEuros(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"

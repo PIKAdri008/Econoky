@@ -8,14 +8,34 @@ type IndexQuote = {
   date: string
 }
 
+const tryParseJson = (text: string) => {
+  try {
+    return JSON.parse(text)
+  } catch {
+    return null
+  }
+}
+
+const sanitizeStooqPayload = (text: string) => {
+  const parsed = tryParseJson(text)
+  if (parsed) return parsed
+
+  const cleaned = text.replace(/"volume":\s*([}\]])/g, '"volume":0$1')
+  const cleanedParsed = tryParseJson(cleaned)
+  if (cleanedParsed) return cleanedParsed
+
+  throw new Error('Respuesta de Stooq inválida')
+}
+
 async function fetchStooqQuote(symbol: string, label: string): Promise<IndexQuote | null> {
   try {
-    const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlcv&h&e=json`
+    const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlc&h&e=json`
     const res = await fetch(url, { next: { revalidate: 300 } })
     if (!res.ok) {
       throw new Error(`Stooq response ${res.status}`)
     }
-    const data = await res.json()
+    const raw = await res.text()
+    const data = sanitizeStooqPayload(raw)
     const item = data?.symbols?.[0]
     if (!item?.close) {
       return null

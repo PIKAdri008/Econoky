@@ -319,7 +319,7 @@ export default function DashboardFinancieroPage() {
                     inputMode="decimal"
                     value={inputs[field] || ''}
                     onChange={event => handleChange(field, event.target.value)}
-                    max={100000000}
+                    max={999999999}
                     className="w-full rounded-2xl border border-gray-200 bg-white text-gray-900 placeholder-gray-500 px-3 sm:px-4 py-2 sm:py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                     placeholder="0,00"
                   />

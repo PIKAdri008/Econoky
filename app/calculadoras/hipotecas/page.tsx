@@ -88,7 +88,7 @@ export default function HipotecasPage() {
                   <input
                     type="number"
                     min={0}
-                    max={100000000}
+                  max={999999999}
                     inputMode="decimal"
                     value={capital}
                     onChange={(e) => setCapital(sanitizeCapital(e.target.value))}

@@ -52,7 +52,7 @@ export default function InteresCompuestoPage() {
                   <input
                     type="number"
                     min={0}
-                    max={100000000}
+                  max={999999999}
                     value={valorActual}
                     onChange={(e) => setValorActual(sanitizeEuros(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
@@ -115,7 +115,7 @@ export default function InteresCompuestoPage() {
                   <input
                     type="number"
                     min={0}
-                    max={100000000}
+                  max={999999999}
                     value={valorFuturo}
                     onChange={(e) => setValorFuturo(sanitizeEuros(e.target.value))}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"

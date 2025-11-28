@@ -24,13 +24,13 @@ export default function JubilacionPensionPage() {
   const sanitizeEdadActual = (value: string | number) => clampNumber(value, 18, 60)
   const sanitizeEdadJubilacion = (value: string | number) => clampNumber(value, 61, 75)
   const sanitizeSalario = (value: string | number) =>
-    sanitizeCurrencyInput(value, 100000000, { min: 12000 })
+    sanitizeCurrencyInput(value, 999999999, { min: 12000 })
   const sanitizeAportacion = (value: string | number) =>
-    sanitizeCurrencyInput(value, 100000000)
+    sanitizeCurrencyInput(value, 999999999)
   const sanitizeRentabilidad = (value: string | number) =>
     clampNumber(value, 0, 12, { decimals: 2 })
   const sanitizeCapital = (value: string | number) =>
-    sanitizeCurrencyInput(value, 100000000)
+    sanitizeCurrencyInput(value, 999999999)
 
   const calcularPensionPublica = (salario: number, edadTrabajador: number, edadJub: number) => {
     const anosCotizadosEstimados = clampNumber(edadJub - Math.max(22, edadTrabajador - 5), 15, 36)
@@ -185,7 +185,7 @@ export default function JubilacionPensionPage() {
                 <input
                   type="number"
                   min={12000}
-                  max={100000000}
+                  max={999999999}
                   value={salarioAnual}
                   onChange={(e) => setSalarioAnual(sanitizeSalario(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
@@ -200,7 +200,7 @@ export default function JubilacionPensionPage() {
                 <input
                   type="number"
                   min={0}
-                  max={100000000}
+                  max={999999999}
                   value={aportacionMensual}
                   onChange={(e) => setAportacionMensual(sanitizeAportacion(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
@@ -215,7 +215,7 @@ export default function JubilacionPensionPage() {
                 <input
                   type="number"
                   min={0}
-                  max={100000000}
+                  max={999999999}
                   value={capitalActual}
                   onChange={(e) => setCapitalActual(sanitizeCapital(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"

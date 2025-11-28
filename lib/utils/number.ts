@@ -65,7 +65,7 @@ export function roundToTwo(value: number) {
 
 export function sanitizeCurrencyInput(
   value: string | number,
-  max = 100_000_000,
+  max = 999_999_999,
   options?: { min?: number; decimals?: number }
 ) {
   const { min = 0, decimals = 2 } = options || {}

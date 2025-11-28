@@ -14,7 +14,7 @@ export default function RepartoHerenciaPage() {
   const [tieneConyuge, setTieneConyuge] = useState(true)
   const [resultados, setResultados] = useState<any>(null)
 
-  const sanitizeMoneda = (value: string | number, max = 100000000) =>
+  const sanitizeMoneda = (value: string | number, max = 999999999) =>
     sanitizeCurrencyInput(value, max)
   const sanitizeEntero = (value: string | number, min = 0, max = 10) =>
     Math.round(clampNumber(value, min, max))
@@ -178,7 +178,7 @@ export default function RepartoHerenciaPage() {
                 <input
                   type="number"
                   min={0}
-                  max={100000000}
+                  max={999999999}
                   value={activoNeto}
                   onChange={(e) => setActivoNeto(sanitizeMoneda(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
