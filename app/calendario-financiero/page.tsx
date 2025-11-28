@@ -106,8 +106,14 @@ export default function CalendarioFinancieroPage() {
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryError, setSummaryError] = useState<string | null>(null)
 
-  const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-  const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+  const monthStart = useMemo(
+    () => new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
+    [currentDate]
+  )
+  const monthEnd = useMemo(
+    () => new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0),
+    [currentDate]
+  )
 
   const fetchEvents = useCallback(async () => {
     const { apiCalendar } = CALENDARS[calendarType]

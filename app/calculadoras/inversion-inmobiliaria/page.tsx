@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { clampNumber } from '@/lib/utils/number'
+import { clampNumber, sanitizeCurrencyInput } from '@/lib/utils/number'
 
 export default function InversionInmobiliariaPage() {
   const [precioCompra, setPrecioCompra] = useState(100000)
@@ -25,9 +25,11 @@ export default function InversionInmobiliariaPage() {
   const [imprevistos, setImprevistos] = useState(10)
   const [resultados, setResultados] = useState<any>(null)
 
-  const sanitizeEuro = (value: string | number, max = 2000000) => clampNumber(value, 0, max)
-  const sanitizePercent = (value: string | number, max = 100) => clampNumber(value, 0, max)
-  const sanitizeTipo = (value: string | number) => clampNumber(value, 0, 15)
+  const sanitizeEuro = (value: string | number, max = 100000000) =>
+    sanitizeCurrencyInput(value, max)
+  const sanitizePercent = (value: string | number, max = 100) =>
+    clampNumber(value, 0, max, { decimals: 2 })
+  const sanitizeTipo = (value: string | number) => clampNumber(value, 0, 15, { decimals: 2 })
   const sanitizePlazo = (value: string | number) => clampNumber(value, 1, 40)
 
   const calcular = () => {
@@ -91,7 +93,7 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     min={0}
-                    max={2000000}
+                    max={100000000}
                     value={precioCompra}
                     onChange={(e) => setPrecioCompra(sanitizeEuro(e.target.value))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
@@ -106,7 +108,7 @@ export default function InversionInmobiliariaPage() {
                   <input
                     type="number"
                     min={0}
-                    max={2000000}
+                    max={100000000}
                     value={ahorros}
                     onChange={(e) => setAhorros(sanitizeEuro(e.target.value))}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"

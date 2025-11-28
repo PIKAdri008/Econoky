@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { clampNumber } from '@/lib/utils/number'
+import { clampNumber, sanitizeCurrencyInput } from '@/lib/utils/number'
 
 const euro = (value: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value)
@@ -11,23 +11,26 @@ export default function RepartoHerenciaPage() {
   const [edadConyuge, setEdadConyuge] = useState(45)
   const [numeroHijos, setNumeroHijos] = useState(2)
   const [tieneAscendientes, setTieneAscendientes] = useState(true)
+  const [tieneConyuge, setTieneConyuge] = useState(true)
   const [resultados, setResultados] = useState<any>(null)
 
-  const sanitizeMoneda = (value: string | number, max = 5000000) =>
-    clampNumber(value, 0, max)
+  const sanitizeMoneda = (value: string | number, max = 100000000) =>
+    sanitizeCurrencyInput(value, max)
   const sanitizeEntero = (value: string | number, min = 0, max = 10) =>
     Math.round(clampNumber(value, min, max))
 
   const calcular = () => {
     const capital = sanitizeMoneda(activoNeto)
     const hijos = sanitizeEntero(numeroHijos, 0, 10)
-    const edad = clampNumber(edadConyuge, 18, 99)
+    const edad = tieneConyuge ? clampNumber(edadConyuge, 18, 99) : null
 
     setActivoNeto(capital)
     setNumeroHijos(hijos)
-    setEdadConyuge(edad)
+    if (tieneConyuge && edad !== null) {
+      setEdadConyuge(edad)
+    }
 
-    const gananciales = capital * 0.5
+    const gananciales = tieneConyuge ? capital * 0.5 : 0
     const masaHereditaria = capital - gananciales
 
     if (hijos > 0) {
@@ -42,20 +45,21 @@ export default function RepartoHerenciaPage() {
         gananciales,
         masaHereditaria,
         hijos,
+        tieneConyuge,
         opciones: {
           A: {
             descripcion: 'Tercio libre y de mejora para el cónyuge. Hijos solo legítima estricta.',
-            conyuge: gananciales + tercioLibre + tercioMejora,
+            conyuge: tieneConyuge ? gananciales + tercioLibre + tercioMejora : 0,
             hijos: repartoLegitima,
           },
           B: {
             descripcion: 'Libre y mejora para los hijos a partes iguales.',
-            conyuge: gananciales + tercioLibre,
+            conyuge: tieneConyuge ? gananciales + tercioLibre : 0,
             hijos: Array.from({ length: hijos }, () => (tercioLegitima + tercioMejora) / hijos),
           },
           C: {
             descripcion: 'Libre y mejora al hijo 1 (habitual en negocios familiares).',
-            conyuge: gananciales + tercioLibre,
+            conyuge: tieneConyuge ? gananciales + tercioLibre : 0,
             hijos: Array.from({ length: hijos }, (_, i) =>
               tercioLegitima / hijos + (i === 0 ? tercioMejora : 0)
             ),
@@ -67,21 +71,25 @@ export default function RepartoHerenciaPage() {
         ? masaHereditaria * (gananciales > 0 ? 1 / 3 : 1 / 2)
         : 0
       const libreDisposicion = masaHereditaria - legitimaAscendientes
-      const porcentajeUsufructo = clampNumber(89 - edad, 10, 70) / 100
+      const edadReferencia = edad ?? 65
+      const porcentajeUsufructo = tieneConyuge ? clampNumber(89 - edadReferencia, 10, 70) / 100 : 0
       const baseUsufructo = tieneAscendientes ? masaHereditaria / 2 : masaHereditaria
-      const valorUsufructo = baseUsufructo * porcentajeUsufructo
+      const valorUsufructo = tieneConyuge ? baseUsufructo * porcentajeUsufructo : 0
 
       setResultados({
         tipo: 'ascendientes',
+        tieneConyuge,
         gananciales,
         masaHereditaria,
         legitimaAscendientes,
         libreDisposicion,
         valorUsufructo,
         porcentajeUsufructo: porcentajeUsufructo * 100,
-        mensaje: tieneAscendientes
-          ? 'Se calcula la legítima estricta para los ascendientes y el usufructo del 50% para el cónyuge (art. 834 CC).'
-          : 'Sin descendientes ni ascendientes, el cónyuge puede recibir el resto de la herencia en plena propiedad.',
+        mensaje: tieneConyuge
+          ? tieneAscendientes
+            ? 'Se calcula la legítima estricta para los ascendientes y el usufructo del 50% para el cónyuge (art. 834 CC).'
+            : 'Sin descendientes ni ascendientes, el cónyuge puede recibir el resto de la herencia en plena propiedad.'
+          : 'Sin cónyuge, la herencia se reparte entre ascendientes o queda libre según el Código Civil.',
       })
     }
   }
@@ -105,10 +113,14 @@ export default function RepartoHerenciaPage() {
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-700">Cónyuge</span>
-              <span className="font-semibold">{euro(opcion.conyuge)}</span>
-            </div>
+            {resultados.tieneConyuge ? (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Cónyuge</span>
+                <span className="font-semibold">{euro(opcion.conyuge)}</span>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500">Sin cónyuge registrado para este escenario.</p>
+            )}
             {opcion.hijos.map((cantidad: number, index: number) => (
               <div key={index} className="flex items-center justify-between text-sm">
                 <span>Hijo {index + 1}</span>
@@ -135,10 +147,16 @@ export default function RepartoHerenciaPage() {
           <span className="text-gray-700">Libre disposición</span>
           <span className="font-semibold">{euro(resultados.libreDisposicion)}</span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-gray-700">Valor del usufructo conyugal ({resultados.porcentajeUsufructo.toFixed(2)}%)</span>
-          <span className="font-semibold text-primary-700">{euro(resultados.valorUsufructo)}</span>
-        </div>
+        {resultados.tieneConyuge ? (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-700">
+              Valor del usufructo conyugal ({resultados.porcentajeUsufructo.toFixed(2)}%)
+            </span>
+            <span className="font-semibold text-primary-700">{euro(resultados.valorUsufructo)}</span>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No se aplica usufructo conyugal al no haber cónyuge.</p>
+        )}
       </div>
     </div>
   )
@@ -160,7 +178,7 @@ export default function RepartoHerenciaPage() {
                 <input
                   type="number"
                   min={0}
-                  max={5000000}
+                  max={100000000}
                   value={activoNeto}
                   onChange={(e) => setActivoNeto(sanitizeMoneda(e.target.value))}
                   className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
@@ -175,12 +193,23 @@ export default function RepartoHerenciaPage() {
                   type="number"
                   min={18}
                   max={99}
-                  value={edadConyuge}
+                  value={tieneConyuge ? edadConyuge : ''}
                   onChange={(e) => setEdadConyuge(clampNumber(e.target.value, 18, 99))}
-                  className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark"
+                  disabled={!tieneConyuge}
+                  className="flex-1 px-3 py-2 border border-secondary-light rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-secondary-dark disabled:bg-secondary-light/50 disabled:cursor-not-allowed"
+                  placeholder="—"
                 />
                 <span className="text-secondary-dark/70">años</span>
               </div>
+              <label className="inline-flex items-center gap-2 text-xs text-secondary-dark/70 mt-2">
+                <input
+                  type="checkbox"
+                  checked={!tieneConyuge}
+                  onChange={(e) => setTieneConyuge(!e.target.checked)}
+                  className="rounded border-secondary-light text-primary-600 focus:ring-primary-500"
+                />
+                No tengo cónyuge
+              </label>
             </div>
             <div>
               <label className="block text-sm font-medium text-secondary-dark mb-1">Número de hijos</label>

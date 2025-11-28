@@ -1168,7 +1168,7 @@ export default function TestPage() {
                 : 'border-secondary-light text-secondary-dark hover:border-primary-400'
             }`}
           >
-            Test Psicofinanciero de Esmeralda
+            Test psicofinanciero
           </button>
           <button
             onClick={() => setTestActivo('finanzas')}

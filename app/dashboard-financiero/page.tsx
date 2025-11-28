@@ -2,10 +2,16 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { PiggyBank, Wallet, TrendingUp, ShieldCheck, Save } from 'lucide-react'
+import { sanitizeCurrencyInput } from '@/lib/utils/number'
 
 const numberFormatter = new Intl.NumberFormat('es-ES', {
   style: 'currency',
   currency: 'EUR',
+  maximumFractionDigits: 2,
+})
+
+const decimalFormatter = new Intl.NumberFormat('es-ES', {
+  minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 })
 
@@ -16,6 +22,44 @@ type FinancialInputs = {
   inversion: number
   deuda: number
   patrimonio: number
+}
+
+type MarketIndex = {
+  symbol: string
+  label: string
+  value: number
+  change: number
+  date: string
+}
+
+type CryptoAsset = {
+  symbol: string
+  name: string
+  eur: number | null
+  usd: number | null
+}
+
+type MarketOverview = {
+  indices: MarketIndex[]
+  crypto: CryptoAsset[] | null
+  gold: {
+    ounceEur: number
+    change: number | null
+    updatedAt: string
+  } | null
+  fx: {
+    eurUsd: number | null
+    usdEur: number | null
+    eurUsdDate: string | null
+    usdEurDate: string | null
+  } | null
+  euribor: {
+    value: number
+    date: string | null
+    source: string
+    isFallback: boolean
+  }
+  fetchedAt: string
 }
 
 const INITIAL_STATE: FinancialInputs = {
@@ -35,10 +79,14 @@ export default function DashboardFinancieroPage() {
   const [rates, setRates] = useState<Record<string, number> | null>(null)
   const [ratesLoading, setRatesLoading] = useState(false)
   const [ratesError, setRatesError] = useState<string | null>(null)
+  const [marketOverview, setMarketOverview] = useState<MarketOverview | null>(null)
+  const [marketLoading, setMarketLoading] = useState(false)
+  const [marketError, setMarketError] = useState<string | null>(null)
 
   useEffect(() => {
     loadDashboard()
     loadRates()
+    loadMarketOverview()
   }, [])
 
   const loadDashboard = async () => {
@@ -74,6 +122,24 @@ export default function DashboardFinancieroPage() {
       setRatesError(error.message || 'No se pudieron cargar las divisas')
     } finally {
       setRatesLoading(false)
+    }
+  }
+
+  const loadMarketOverview = async () => {
+    try {
+      setMarketLoading(true)
+      setMarketError(null)
+      const response = await fetch('/api/market-overview')
+      if (!response.ok) {
+        throw new Error('No se pudo actualizar la información de mercado')
+      }
+      const data = (await response.json()) as MarketOverview
+      setMarketOverview(data)
+    } catch (error: any) {
+      console.error('Error cargando mercados globales:', error)
+      setMarketError(error.message || 'No se pudo cargar la información de mercado')
+    } finally {
+      setMarketLoading(false)
     }
   }
 
@@ -132,14 +198,14 @@ export default function DashboardFinancieroPage() {
   }, [inputs])
 
   const handleChange = (field: keyof FinancialInputs, value: string) => {
-    const numericValue = Number(value)
+    const numericValue = sanitizeCurrencyInput(value, 100_000_000)
     setInputs(prev => ({
       ...prev,
-      [field]: isNaN(numericValue) ? 0 : numericValue,
+      [field]: numericValue,
     }))
     setSaveMessage('')
   }
-
+       
   if (loading) {
     return (
       <section className="min-h-screen bg-gradient-to-b from-[#eef4ff] via-white to-white py-12 px-4">
@@ -171,6 +237,16 @@ export default function DashboardFinancieroPage() {
             con alto contraste para que puedas editar tus datos sin esfuerzo, tal como en el modelo
             proporcionado.
           </p>
+          <div className="bg-primary-50/70 border border-primary-100 rounded-2xl p-4 text-sm text-gray-700 space-y-2">
+            <p className="font-semibold text-primary-700">Dashboard financiero con:</p>
+            <ul className="list-disc pl-5 space-y-1 text-gray-600">
+              <li>Principales índices: IBEX35, NASDAQ100 y S&P500</li>
+              <li>Criptomonedas clave: Bitcoin y Ethereum</li>
+              <li>Precio del Euríbor a un año y de la onza de oro</li>
+              <li>Tipo de cambio USD/EUR y EUR/USD actualizados</li>
+              <li>Campos optimizados: hasta 100 millones, máximo 9 dígitos y decimales limitados</li>
+            </ul>
+          </div>
         </header>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -243,6 +319,7 @@ export default function DashboardFinancieroPage() {
                     inputMode="decimal"
                     value={inputs[field] || ''}
                     onChange={event => handleChange(field, event.target.value)}
+                    max={100000000}
                     className="w-full rounded-2xl border border-gray-200 bg-white text-gray-900 placeholder-gray-500 px-3 sm:px-4 py-2 sm:py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                     placeholder="0,00"
                   />
@@ -382,6 +459,161 @@ export default function DashboardFinancieroPage() {
                 <span className="text-[10px] text-gray-500 mt-0.5">1 EUR = {code}</span>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-4 sm:p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Pulso del mercado</h3>
+                <p className="text-sm text-gray-500">
+                  Seguimiento ligero de índices, cripto, Euríbor y metales.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {marketOverview?.fetchedAt && (
+                  <p className="text-xs text-gray-500">
+                    Actualizado: {new Date(marketOverview.fetchedAt).toLocaleString('es-ES')}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={loadMarketOverview}
+                  disabled={marketLoading}
+                  className="text-xs px-3 py-1.5 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                >
+                  {marketLoading ? 'Cargando...' : 'Refrescar'}
+                </button>
+              </div>
+            </div>
+
+            {marketError && (
+              <p className="text-sm text-red-600">{marketError}</p>
+            )}
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {(marketOverview?.indices || []).map(index => (
+                <div key={index.symbol} className="rounded-2xl border border-gray-100 p-4 bg-gradient-to-br from-gray-50 to-white space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-gray-500 uppercase">{index.label}</p>
+                    <span className={`text-sm font-semibold ${index.change >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {index.change >= 0 ? '+' : ''}
+                      {decimalFormatter.format(index.change)}
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">{decimalFormatter.format(index.value)}</p>
+                  <p className="text-xs text-gray-500">{index.date}</p>
+                </div>
+              ))}
+              {!marketOverview?.indices?.length && !marketLoading && (
+                <p className="text-sm text-gray-500 md:col-span-3">
+                  Aún no hay datos de índices disponibles. Intenta refrescar.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-5 space-y-3">
+              <h4 className="text-base font-semibold text-gray-900">Criptomonedas (EUR)</h4>
+              <div className="space-y-3">
+                {(marketOverview?.crypto || []).map(asset => (
+                  <div key={asset.symbol} className="flex items-center justify-between text-sm">
+                    <div>
+                      <p className="font-semibold text-gray-900">{asset.name}</p>
+                      <p className="text-xs text-gray-500">{asset.symbol}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-primary-600">
+                        {asset.eur ? numberFormatter.format(asset.eur) : '—'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {asset.usd ? `$${asset.usd.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : '—'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {!marketOverview?.crypto && !marketLoading && (
+                  <p className="text-sm text-gray-500">Sin datos de cripto disponibles.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-5 space-y-4">
+              <h4 className="text-base font-semibold text-gray-900">Euríbor 12M y oro</h4>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500">Euríbor 12 meses</p>
+                    <p className="text-xs text-gray-400">
+                      Fuente: {marketOverview?.euribor?.source || '—'}{' '}
+                      {marketOverview?.euribor?.isFallback && '(referencia)'}
+                    </p>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {marketOverview?.euribor
+                      ? `${decimalFormatter.format(marketOverview.euribor.value)}%`
+                      : '—'}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500">Onza de oro (EUR)</p>
+                    <p className="text-xs text-gray-400">
+                      {marketOverview?.gold?.updatedAt
+                        ? new Date(marketOverview.gold.updatedAt).toLocaleString('es-ES')
+                        : '—'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-gray-900">
+                      {marketOverview?.gold
+                        ? numberFormatter.format(marketOverview.gold.ounceEur)
+                        : '—'}
+                    </p>
+                    {typeof marketOverview?.gold?.change === 'number' && (
+                      <p
+                        className={`text-xs ${
+                          marketOverview.gold.change >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                        }`}
+                      >
+                        {marketOverview.gold.change >= 0 ? '+' : ''}
+                        {decimalFormatter.format(marketOverview.gold.change)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-white/60 shadow-glow-primary p-5 space-y-4">
+              <h4 className="text-base font-semibold text-gray-900">Divisas USD ↔ EUR</h4>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">EUR / USD</span>
+                  <span className="text-lg font-semibold text-gray-900">
+                    {marketOverview?.fx?.eurUsd
+                      ? decimalFormatter.format(marketOverview.fx.eurUsd)
+                      : '—'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">USD / EUR</span>
+                  <span className="text-lg font-semibold text-gray-900">
+                    {marketOverview?.fx?.usdEur
+                      ? decimalFormatter.format(marketOverview.fx.usdEur)
+                      : '—'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400">
+                  Última actualización:{' '}
+                  {marketOverview?.fx?.eurUsdDate
+                    ? new Date(marketOverview.fx.eurUsdDate).toLocaleDateString('es-ES')
+                    : '—'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

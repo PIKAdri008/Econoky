@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
-import { clampNumber } from '@/lib/utils/number'
+import { clampNumber, sanitizeCurrencyInput } from '@/lib/utils/number'
 
 const formatoEUR = new Intl.NumberFormat('es-ES', {
   style: 'currency',
@@ -43,7 +43,7 @@ export default function IPCIPage() {
   const [añoActual, setAñoActual] = useState(new Date().getFullYear())
   const [resultados, setResultados] = useState<any>(null)
 
-  const clampGasto = (valor: string) => clampNumber(valor, 0, 20000)
+const clampGasto = (valor: string) => sanitizeCurrencyInput(valor, 20000)
   const clampYear = (valor: string | number, fallback: number) =>
     clampNumber(valor, 2000, 2100) || fallback
 

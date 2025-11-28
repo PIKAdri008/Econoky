@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { clampNumber } from '@/lib/utils/number'
+import { clampNumber, sanitizeCurrencyInput } from '@/lib/utils/number'
 
 export default function RentabilidadPage() {
   const [rentabilidadAnual, setRentabilidadAnual] = useState(5)
@@ -10,8 +10,10 @@ export default function RentabilidadPage() {
   const [plazo, setPlazo] = useState(30)
   const [resultados, setResultados] = useState<any>(null)
 
-  const sanitizePorcentaje = (value: string | number) => clampNumber(value, 0, 25)
-  const sanitizeEuros = (value: string | number) => clampNumber(value, 0, 200000)
+  const sanitizePorcentaje = (value: string | number) =>
+    clampNumber(value, 0, 25, { decimals: 2 })
+  const sanitizeEuros = (value: string | number, max = 100000000) =>
+    sanitizeCurrencyInput(value, max)
   const sanitizePlazo = (value: string | number) => clampNumber(value, 1, 50)
 
   const calcular = () => {
@@ -86,7 +88,7 @@ export default function RentabilidadPage() {
                 <input
                   type="number"
                   min={0}
-                  max={20000}
+                    max={100000000}
                   value={aportacionMensual}
                   onChange={(e) => setAportacionMensual(sanitizeEuros(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
@@ -101,9 +103,9 @@ export default function RentabilidadPage() {
                 <input
                   type="number"
                   min={0}
-                  max={500000}
+                  max={100000000}
                   value={capitalInicial}
-                  onChange={(e) => setCapitalInicial(clampNumber(e.target.value, 0, 500000))}
+                  onChange={(e) => setCapitalInicial(sanitizeEuros(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>

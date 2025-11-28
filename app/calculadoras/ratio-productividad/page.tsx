@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { clampNumber } from '@/lib/utils/number'
+import { clampNumber, sanitizeCurrencyInput } from '@/lib/utils/number'
 
 export default function RatioProductividadPage() {
   const [ingresos, setIngresos] = useState(1000)
@@ -32,9 +32,9 @@ export default function RatioProductividadPage() {
                 <input
                   type="number"
                   min={0}
-                  max={1000000}
+                  max={100000000}
                   value={ingresos}
-                  onChange={(e) => setIngresos(clampNumber(e.target.value, 0, 1000000))}
+                  onChange={(e) => setIngresos(sanitizeCurrencyInput(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>

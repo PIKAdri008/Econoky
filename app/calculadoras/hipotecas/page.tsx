@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { clampNumber } from '@/lib/utils/number'
+import { clampNumber, sanitizeCurrencyInput } from '@/lib/utils/number'
 
 export default function HipotecasPage() {
   const [capital, setCapital] = useState(100000)
@@ -12,9 +12,9 @@ export default function HipotecasPage() {
   const [mesAmortizar, setMesAmortizar] = useState(2)
   const [resultados, setResultados] = useState<any>(null)
 
-  const sanitizeCapital = (value: string | number) => clampNumber(value, 0, 2000000)
+  const sanitizeCapital = (value: string | number) => sanitizeCurrencyInput(value)
   const sanitizePlazo = (value: string | number) => clampNumber(value, 1, 40)
-  const sanitizeInteres = (value: string | number) => clampNumber(value, 0, 20)
+  const sanitizeInteres = (value: string | number) => clampNumber(value, 0, 20, { decimals: 2 })
   const sanitizeAno = (value: string | number) => clampNumber(value, 1, plazo)
   const sanitizeMes = (value: string | number) => clampNumber(value, 1, 12)
 
@@ -88,7 +88,7 @@ export default function HipotecasPage() {
                   <input
                     type="number"
                     min={0}
-                    max={2000000}
+                    max={100000000}
                     inputMode="decimal"
                     value={capital}
                     onChange={(e) => setCapital(sanitizeCapital(e.target.value))}
@@ -174,7 +174,11 @@ export default function HipotecasPage() {
                     min={0}
                     max={capital}
                     value={cantidadAmortizar}
-                    onChange={(e) => setCantidadAmortizar(clampNumber(e.target.value, 0, capital))}
+                  onChange={(e) =>
+                    setCantidadAmortizar(
+                      sanitizeCurrencyInput(e.target.value, Math.max(0, capital) || 0)
+                    )
+                  }
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                   />
                   <span className="text-gray-600">€</span>

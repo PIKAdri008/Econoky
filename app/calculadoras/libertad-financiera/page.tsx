@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { clampNumber } from '@/lib/utils/number'
+import { clampNumber, sanitizeCurrencyInput } from '@/lib/utils/number'
 
 export default function LibertadFinancieraPage() {
   const [ingresosPasivos, setIngresosPasivos] = useState(1000)
@@ -50,9 +50,9 @@ export default function LibertadFinancieraPage() {
                 <input
                   type="number"
                   min={0}
-                  max={100000}
+                  max={100000000}
                   value={ingresosPasivos}
-                  onChange={(e) => setIngresosPasivos(clampNumber(e.target.value, 0, 100000))}
+                  onChange={(e) => setIngresosPasivos(sanitizeCurrencyInput(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>
@@ -65,9 +65,9 @@ export default function LibertadFinancieraPage() {
                 <input
                   type="number"
                   min={0}
-                  max={100000}
+                  max={100000000}
                   value={gastosCorrientes}
-                  onChange={(e) => setGastosCorrientes(clampNumber(e.target.value, 0, 100000))}
+                  onChange={(e) => setGastosCorrientes(sanitizeCurrencyInput(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>
@@ -80,9 +80,9 @@ export default function LibertadFinancieraPage() {
                 <input
                   type="number"
                   min={0}
-                  max={2000000}
+                  max={100000000}
                   value={activosLiquidos}
-                  onChange={(e) => setActivosLiquidos(clampNumber(e.target.value, 0, 2000000))}
+                  onChange={(e) => setActivosLiquidos(sanitizeCurrencyInput(e.target.value))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-black"
                 />
                 <span className="text-gray-600">€</span>
