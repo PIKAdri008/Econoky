@@ -24,7 +24,7 @@ export default function JubilacionPensionPage() {
   const sanitizeEdadActual = (value: string | number) => clampNumber(value, 18, 60)
   const sanitizeEdadJubilacion = (value: string | number) => clampNumber(value, 61, 75)
   const sanitizeSalario = (value: string | number) =>
-    sanitizeCurrencyInput(value, 999999999, { min: 12000 })
+    sanitizeCurrencyInput(value, 999999999, { min: 0 })
   const sanitizeAportacion = (value: string | number) =>
     sanitizeCurrencyInput(value, 999999999)
   const sanitizeRentabilidad = (value: string | number) =>
